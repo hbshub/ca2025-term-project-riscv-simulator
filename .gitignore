@@ -1,0 +1,11 @@
+# 編譯產生的檔案
+*.o
+*.out
+*.hex
+*.bin
+build/
+
+# 系統或編輯器產生的垃圾檔
+.DS_Store
+.vscode/
+*.swp
