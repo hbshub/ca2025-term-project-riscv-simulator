@@ -10,5 +10,5 @@ build/
 .vscode/
 *.swp
 
-simulator/q3-vm-jump-table.c
-simulator/riscv.c
+references/
+sim
