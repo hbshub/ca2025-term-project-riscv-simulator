@@ -16,7 +16,7 @@
 
 enum {
     RAM_SIZE = 1024 * 1024 * 2, /* 2 MiB */
-    RAM_BASE = 0x0,
+    RAM_BASE = 0x80000000,
 };
 
 typedef enum {

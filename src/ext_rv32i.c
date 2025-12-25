@@ -24,6 +24,8 @@ vm_step_result_t ecall_handler(cpu_t *cpu) {
             for (uint32_t i = 0; i < count; i++) {
                 fprintf(stream, "%c", cpu_load(cpu, addr + i, 8));
             }
+            // RISC-V Linux ABI returns number of bytes written in a0
+            cpu->regs[10] = count;
             return VM_STEP_RESULT_OK;
         }
         case SYSCALL_EXIT: {
@@ -43,11 +45,48 @@ static bool rv32i_match(uint32_t raw, int len) {
 static vm_step_result_t rv32i_exec(cpu_t *cpu, uint32_t raw, int len, uint32_t pc) {
     insn_t inst;
     riscv_decode(raw, &inst);
-    
+
     cpu->pc = pc + len;
-    cpu->regs[0] = 0;
 
     switch (inst.opcode) {
+    case INTEGER_COMP_RR: {
+        switch (inst.funct3) {
+        case ADD_SUB:
+            if ((inst.funct7 >> 5) & 0x1) // SUB
+                cpu->regs[inst.rd] = (int32_t)cpu->regs[inst.rs1] - (int32_t)cpu->regs[inst.rs2];
+            else // ADD
+                cpu->regs[inst.rd] = cpu->regs[inst.rs1] + cpu->regs[inst.rs2];
+            break;
+        case XOR:
+            cpu->regs[inst.rd] = cpu->regs[inst.rs1] ^ cpu->regs[inst.rs2];
+            break;
+        case OR:
+            cpu->regs[inst.rd] = cpu->regs[inst.rs1] | cpu->regs[inst.rs2];
+            break;
+        case AND:
+            cpu->regs[inst.rd] = cpu->regs[inst.rs1] & cpu->regs[inst.rs2];
+            break;
+        case SLL:
+            cpu->regs[inst.rd] = cpu->regs[inst.rs1] << (cpu->regs[inst.rs2] & 0x1F);
+            break;
+        case SRL_SRA:
+            if ((inst.funct7 >> 5) & 0x1) // SRA
+                cpu->regs[inst.rd] = (int32_t)cpu->regs[inst.rs1] >> (cpu->regs[inst.rs2] & 0x1F);
+            else // SRL
+                cpu->regs[inst.rd] = (uint32_t)cpu->regs[inst.rs1] >> (cpu->regs[inst.rs2] & 0x1F);
+            break;
+        case SLT:
+            cpu->regs[inst.rd] = ((int32_t)cpu->regs[inst.rs1] < (int32_t)cpu->regs[inst.rs2]) ? 1 : 0;
+            break;
+        case SLTU:
+            cpu->regs[inst.rd] = (cpu->regs[inst.rs1] < cpu->regs[inst.rs2]) ? 1 : 0;
+            break;
+        default:
+            fatal("Unknown FUNCT3 for INTEGER_COMP_RR: 0x%x\n", inst.funct3);
+        }
+        break;
+    }
+
     case INTEGER_COMP_RI: {
         int32_t imm = i_imm(raw);
         switch (inst.funct3) {
@@ -60,53 +99,162 @@ static vm_step_result_t rv32i_exec(cpu_t *cpu, uint32_t raw, int len, uint32_t p
         case ORI:
             cpu->regs[inst.rd] = cpu->regs[inst.rs1] | imm;
             break;
+        case ANDI:
+            cpu->regs[inst.rd] = cpu->regs[inst.rs1] & imm;
+            break;
+        case SLLI:
+            cpu->regs[inst.rd] = cpu->regs[inst.rs1] << (imm & 0x1F);
+            break;
+        case SRLI_SRAI:
+            if ((inst.funct7 >> 5) & 0x1) // SRAI
+                cpu->regs[inst.rd] = (int32_t)cpu->regs[inst.rs1] >> (imm & 0x1F);
+            else // SRLI
+                cpu->regs[inst.rd] = (uint32_t)cpu->regs[inst.rs1] >> (imm & 0x1F);
+            break;
+        case SLTI:
+            cpu->regs[inst.rd] = ((int32_t)cpu->regs[inst.rs1] < imm) ? 1 : 0;
+            break;
+        case SLTIU:
+            cpu->regs[inst.rd] = ((uint32_t)cpu->regs[inst.rs1] < (uint32_t)imm) ? 1 : 0;
+            break;
         default:
             fatal("Unknown FUNCT3 for INTEGER_COMP_RI: 0x%x\n", inst.funct3);
         }
-        return VM_STEP_RESULT_OK;
+        break;
     }
 
     case LOAD: {
         int32_t imm = i_imm(raw);
         uint32_t addr = cpu->regs[inst.rs1] + imm;
-        if (inst.funct3 != LW)
+        switch (inst.funct3) {
+        case LB:
+            cpu->regs[inst.rd] = (int8_t)cpu_load(cpu, addr, 8);
+            break;
+        case LH:
+            if (addr & 1) fatal("Unaligned LOAD (LH): 0x%x\n", addr);
+            cpu->regs[inst.rd] = (int16_t)cpu_load(cpu, addr, 16);
+            break;
+        case LW:
+            if (addr & 3) fatal("Unaligned LOAD (LW): 0x%x\n", addr);
+            cpu->regs[inst.rd] = (int32_t)cpu_load(cpu, addr, 32);
+            break;
+        case LBU:
+            cpu->regs[inst.rd] = (uint8_t)cpu_load(cpu, addr, 8);
+            break;
+        case LHU:
+            if (addr & 1) fatal("Unaligned LOAD (LHU): 0x%x\n", addr);
+            cpu->regs[inst.rd] = (uint16_t)cpu_load(cpu, addr, 16);
+            break;
+        default:
             fatal("Unknown FUNCT3 for LOAD: 0x%x\n", inst.funct3);
-        cpu->regs[inst.rd] = cpu_load(cpu, addr, 32);
-        return VM_STEP_RESULT_OK;
+        }
+        break;
     }
 
     case STORE: {
         int32_t imm = s_imm(raw);
         uint32_t addr = cpu->regs[inst.rs1] + imm;
-        if (inst.funct3 != SW)
+        uint32_t val = cpu->regs[inst.rs2];
+        switch (inst.funct3) {
+        case SB:
+            cpu_store(cpu, addr, 8, val & 0xFF);
+            break;
+        case SH:
+            if (addr & 1) fatal("Unaligned STORE (SH): 0x%x\n", addr);
+            cpu_store(cpu, addr, 16, val & 0xFFFF);
+            break;
+        case SW:
+            if (addr & 3) fatal("Unaligned STORE (SW): 0x%x\n", addr);
+            cpu_store(cpu, addr, 32, val);
+            break;
+        default:
             fatal("Unknown FUNCT3 for STORE: 0x%x\n", inst.funct3);
-        cpu_store(cpu, addr, cpu->regs[inst.rs2]);
-        return VM_STEP_RESULT_OK;
+        }
+        break;
+    }
+
+    case BRANCH: {
+        int32_t imm = b_imm(raw);
+        uint32_t target_pc = pc + imm;
+        bool take_branch = false;
+        switch (inst.funct3) {
+        case BEQ:
+            take_branch = (cpu->regs[inst.rs1] == cpu->regs[inst.rs2]);
+            break;
+        case BNE:
+            take_branch = (cpu->regs[inst.rs1] != cpu->regs[inst.rs2]);
+            break;
+        case BLT:
+            take_branch = ((int32_t)cpu->regs[inst.rs1] < (int32_t)cpu->regs[inst.rs2]);
+            break;
+        case BGE:
+            take_branch = ((int32_t)cpu->regs[inst.rs1] >= (int32_t)cpu->regs[inst.rs2]);
+            break;
+        case BLTU:
+            take_branch = (cpu->regs[inst.rs1] < cpu->regs[inst.rs2]);
+            break;
+        case BGEU:
+            take_branch = (cpu->regs[inst.rs1] >= cpu->regs[inst.rs2]);
+            break;
+        default:
+            fatal("Unknown FUNCT3 for BRANCH: 0x%x\n", inst.funct3);
+        }
+        if (take_branch) {
+            cpu->pc = target_pc;
+        }
+        break;
+    }
+
+    case JAL: {
+        int32_t imm = j_imm(raw);
+        cpu->regs[inst.rd] = pc + len;
+        cpu->pc = pc + imm;
+        break;
     }
 
     case JALR: {
         int32_t imm = i_imm(raw);
         uint32_t target = (cpu->regs[inst.rs1] + imm) & ~1;
-        cpu->regs[inst.rd] = pc + len;
+        // cpu->regs[inst.rd] = pc + len;
+        if (inst.rd != 0) {
+            cpu->regs[inst.rd] = pc + len;
+        }
         cpu->pc = target;
-        return VM_STEP_RESULT_OK;
+        break;
     }
 
     case AUIPC: {
         int32_t imm = u_imm(raw);
         cpu->regs[inst.rd] = pc + imm;
-        return VM_STEP_RESULT_OK;
+        break;
+    }
+
+    case LUI: {
+        int32_t imm = u_imm(raw);
+        cpu->regs[inst.rd] = imm;
+        break;
     }
 
     case ECALL: {
-        if (raw == 0x100073) return VM_STEP_RESULT_OK; // EBREAK
+        // EBREAK stop execution
+        if (raw == 0x100073) return VM_STEP_RESULT_HALT;
         vm_step_result_t result = ecall_handler(cpu);
-        return result;
+        if (result != VM_STEP_RESULT_OK) {
+            return result;
+        }
+        break;
+    }
+
+    case FENCE: {
+        // No operation for FENCE in this simple simulator
+        break;
     }
 
     default:
-        fatal("Illegal Instruction 0x%x at PC 0x%x\n", inst.opcode, cpu->pc);
+        fatal("Illegal Instruction 0x%x at PC 0x%x\n", inst.opcode, pc);
     }
+    cpu->regs[0] = 0; // x0 is always zero
+    return VM_STEP_RESULT_OK;
 }
 
 const ext_t ext_rv32i = {

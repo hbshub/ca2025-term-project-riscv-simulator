@@ -22,9 +22,9 @@ uint32_t cpu_load(cpu_t *cpu, uint32_t addr, uint8_t size)
     return ram_load(cpu->ram, addr, size);
 }
 
-void cpu_store(cpu_t *cpu, uint32_t addr, uint32_t value)
+void cpu_store(cpu_t *cpu, uint32_t addr, uint8_t size, uint32_t value)
 {
-    ram_store(cpu->ram, addr, value);
+    ram_store(cpu->ram, addr, size, value);
 }
 
 uint32_t cpu_fetch(cpu_t *cpu)

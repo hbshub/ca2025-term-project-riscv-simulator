@@ -9,7 +9,7 @@ typedef struct {
 ram_t *ram_new();
 void ram_free(ram_t *mem);
 uint32_t ram_load(ram_t *mem, uint32_t addr, uint8_t size);
-void ram_store(ram_t *mem, uint32_t addr, uint32_t value);
+void ram_store(ram_t *mem, uint32_t addr, uint8_t size, uint32_t value);
 void ram_load_image(ram_t *mem, uint8_t *code, size_t code_size, uint32_t base_addr);
 
 #endif // RAM_H

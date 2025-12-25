@@ -21,29 +21,38 @@ void vm_free(vm_t *vm)
 vm_step_result_t vm_step(vm_t *vm)
 {
     cpu_t *cpu = vm->cpu;
-    size_t code_size = vm->code_size;
+    // size_t code_size = vm->code_size;
 
-    if (cpu->pc >= code_size) {
-        return VM_STEP_RESULT_HALT;
-    }
+    // if (cpu->pc >= code_size) {
+    //     return VM_STEP_RESULT_HALT;
+    // }
 
     uint32_t pc_current = cpu->pc;
     uint32_t raw = cpu_fetch(cpu);
 
-    if (cpu->pc > code_size) {
-        return VM_STEP_RESULT_HALT;
-    }
+    // if (cpu->pc > code_size) {
+    //     return VM_STEP_RESULT_HALT;
+    // }
 
     vm_step_result_t result = riscv_execute(cpu, raw, pc_current);
     
    return result;
 }
 
-vm_step_result_t vm_run(vm_t *vm)
+vm_step_result_t vm_run(vm_t *vm, uint32_t tohost_addr)
 {
     vm_step_result_t result;
-    do {
+    while (1) {
         result = vm_step(vm);
-    } while (result == VM_STEP_RESULT_OK);
+
+        // ecall or illegal instruction
+        if (result != VM_STEP_RESULT_OK) { break; }
+
+        // monitor tohost_addr for termination signal
+        if (tohost_addr != 0) {
+            uint32_t val = ram_load(vm->ram, tohost_addr, 32); 
+            if (val != 0) { return VM_STEP_RESULT_HALT; }
+        }
+    }
     return result;
 }

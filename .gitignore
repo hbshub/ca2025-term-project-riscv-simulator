@@ -1,3 +1,22 @@
-src/*.o
-.vscode/
-main
+# IDE / venv
+/.vscode/
+/.venv/
+
+# Python cache
+**/__pycache__/
+
+# Build artifacts
+**/*.o
+**/*.elf
+**/*.bin
+**/*.out
+**/*.log
+**/*.d
+**/*.a
+
+# Repo root build output
+/main
+
+# tools and work directories
+/riscv_tools/
+/riscof_env/riscof_work/

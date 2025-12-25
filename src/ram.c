@@ -35,7 +35,8 @@ static uint32_t ram_load16(ram_t *mem, uint32_t addr)
 static uint32_t ram_load32(ram_t *mem, uint32_t addr)
 {
     size_t index = addr - RAM_BASE;
-    return ((uint32_t) mem->mem[index] | ((uint32_t) mem->mem[index + 1] << 8) |
+    return ((uint32_t) mem->mem[index] |
+            ((uint32_t) mem->mem[index + 1] << 8) |
             ((uint32_t) mem->mem[index + 2] << 16) |
             ((uint32_t) mem->mem[index + 3] << 24));
 }
@@ -53,7 +54,7 @@ uint32_t ram_load(ram_t *mem, uint32_t addr, uint8_t size)
     return r;
 }
 
-static void ram_store32(ram_t *mem, uint32_t addr, uint32_t value)
+static void ram_store32(ram_t *mem, uint32_t addr, uint8_t size, uint32_t value)
 {
     size_t index = addr - RAM_BASE;
     mem->mem[index] = value & 0xFF;
@@ -62,10 +63,28 @@ static void ram_store32(ram_t *mem, uint32_t addr, uint32_t value)
     mem->mem[index + 3] = (value >> 24) & 0xFF;
 }
 
-void ram_store(ram_t *mem, uint32_t addr, uint32_t value)
+static void ram_store16(ram_t *mem, uint32_t addr, uint8_t size, uint32_t value)
+{
+    size_t index = addr - RAM_BASE;
+    mem->mem[index] = value & 0xFF;
+    mem->mem[index + 1] = (value >> 8) & 0xFF;
+}
+
+static void ram_store8(ram_t *mem, uint32_t addr, uint8_t size, uint32_t value)
+{
+    size_t index = addr - RAM_BASE;
+    mem->mem[index] = value & 0xFF;
+}
+
+void ram_store(ram_t *mem, uint32_t addr, uint8_t size, uint32_t value)
 {
     check_addr(addr);
-    ram_store32(mem, addr, value);
+    switch (size) {
+        case 8: ram_store8(mem, addr, size, value); break;
+        case 16: ram_store16(mem, addr, size, value); break;
+        case 32: ram_store32(mem, addr, size, value); break;
+        default: fatal("RAM: invalid load size(%d)\n", size);
+    }
 }
 
 void ram_load_image(ram_t *mem, uint8_t *code, size_t code_size, uint32_t base_addr)
