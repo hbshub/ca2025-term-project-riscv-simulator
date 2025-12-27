@@ -1,0 +1,41 @@
+# RV32I Base Integer Instruction Set -- RV32I 2.1 Ratified
+lui              aaaaaaaa aaaaaaaa aaaabbbb b0110111, b:rd, a:imm
+auipc            aaaaaaaa aaaaaaaa aaaabbbb b0010111, b:rd, a:imm
+jal              aaaaaaaa aaaaaaaa aaaabbbb b1101111, b:rd, a:imm
+jalr             aaaaaaaa aaaabbbb b000cccc c1100111, c:rd, b:rs1, a:imm
+beq              aaaaaaab bbbbcccc c000dddd d1100011, c:rs1, b:rs2, a:immhi, d:immlo
+bne              aaaaaaab bbbbcccc c001dddd d1100011, c:rs1, b:rs2, a:immhi, d:immlo
+blt              aaaaaaab bbbbcccc c100dddd d1100011, c:rs1, b:rs2, a:immhi, d:immlo
+bge              aaaaaaab bbbbcccc c101dddd d1100011, c:rs1, b:rs2, a:immhi, d:immlo
+bltu             aaaaaaab bbbbcccc c110dddd d1100011, c:rs1, b:rs2, a:immhi, d:immlo
+bgeu             aaaaaaab bbbbcccc c111dddd d1100011, c:rs1, b:rs2, a:immhi, d:immlo
+lb               aaaaaaaa aaaabbbb b000cccc c0000011, c:rd, b:rs1, a:imm
+lh               aaaaaaaa aaaabbbb b001cccc c0000011, c:rd, b:rs1, a:imm
+lw               aaaaaaaa aaaabbbb b010cccc c0000011, c:rd, b:rs1, a:imm
+lbu              aaaaaaaa aaaabbbb b100cccc c0000011, c:rd, b:rs1, a:imm
+lhu              aaaaaaaa aaaabbbb b101cccc c0000011, c:rd, b:rs1, a:imm
+sb               aaaaaaab bbbbcccc c000dddd d0100011, b:rs2, c:rs1, a:immhi, d:immlo
+sh               aaaaaaab bbbbcccc c001dddd d0100011, b:rs2, c:rs1, a:immhi, d:immlo
+sw               aaaaaaab bbbbcccc c010dddd d0100011, b:rs2, c:rs1, a:immhi, d:immlo
+addi             aaaaaaaa aaaabbbb b000cccc c0010011, c:rd, b:rs1, a:imm
+slti             aaaaaaaa aaaabbbb b010cccc c0010011, c:rd, b:rs1, a:imm
+sltiu            aaaaaaaa aaaabbbb b011cccc c0010011, c:rd, b:rs1, a:imm
+xori             aaaaaaaa aaaabbbb b100cccc c0010011, c:rd, b:rs1, a:imm
+ori              aaaaaaaa aaaabbbb b110cccc c0010011, c:rd, b:rs1, a:imm
+andi             aaaaaaaa aaaabbbb b111cccc c0010011, c:rd, b:rs1, a:imm
+slli             000000aa aaaabbbb b001cccc c0010011, c:rd, b:rs1, a:shamt      # rv32i/rv64i shamt[5] must be 0 for rv32i
+srli             000000aa aaaabbbb b101cccc c0010011, c:rd, b:rs1, a:shamt      # rv32i/rv64i shamt[5] must be 0 for rv32i
+srai             010000aa aaaabbbb b101cccc c0010011, c:rd, b:rs1, a:shamt      # rv32i/rv64i shamt[5] must be 0 for rv32i
+add              0000000a aaaabbbb b000cccc c0110011, c:rd, b:rs1, a:rs2
+sub              0100000a aaaabbbb b000cccc c0110011, c:rd, b:rs1, a:rs2
+sll              0000000a aaaabbbb b001cccc c0110011, c:rd, b:rs1, a:rs2
+slt              0000000a aaaabbbb b010cccc c0110011, c:rd, b:rs1, a:rs2
+sltu             0000000a aaaabbbb b011cccc c0110011, c:rd, b:rs1, a:rs2
+xor              0000000a aaaabbbb b100cccc c0110011, c:rd, b:rs1, a:rs2
+srl              0000000a aaaabbbb b101cccc c0110011, c:rd, b:rs1, a:rs2
+sra              0100000a aaaabbbb b101cccc c0110011, c:rd, b:rs1, a:rs2
+or               0000000a aaaabbbb b110cccc c0110011, c:rd, b:rs1, a:rs2
+and              0000000a aaaabbbb b111cccc c0110011, c:rd, b:rs1, a:rs2
+fence            aaaabbbb cccc0000 00000000 00001111, a:fm, b:pred, c:succ
+ecall            00000000 00000000 00000000 01110011
+ebreak           00000000 00010000 00000000 01110011

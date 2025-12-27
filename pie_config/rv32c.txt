@@ -1,0 +1,32 @@
+# RVC Standard Extension for Compressed Instructions -- RVC 2.0 Ratified
+# Instruction listing for RVC, Quadrant 0
+c_illegal             00000000 00000000
+c_addi4spn            000aaaaa aaabbb00, b:rd, a:nzuimm:!:0                      # (RES, nzuimm=0)
+c_lw                  010aaabb bccddd00, d:rd, b:rs1, a:uimmhi, c:uimmlo
+c_sw                  110aaabb bccddd00, d:rs2, b:rs1, a:uimmhi, c:uimmlo
+# Instruction listing for RVC, Quadrant 1
+c_nop                 000a0000 0bbbbb01, a:nzimmhi, b:nzimmlo                    # (HINT, nzimm != 0)
+c_addi                000abbbb bccccc01, b:rs1_rd:!:0, a:nzimmhi, c:nzimmlo      # (HINT, nzimm=0)
+c_jal                 001aaaaa aaaaaa01, a:imm                                   # (RV32)
+c_li                  010abbbb bccccc01, b:rd:!:0, a:nzimmhi, c:nzimmlo          # (HINT, rd=0)
+c_addi16sp            011a0001 0bbbbb01, a:nzimmhi, b:nzimmlo                    # (RES, nzimm=0)
+c_lui                 011abbbb bccccc01, b:rd:!:00000:00010, a:nzimmhi, c:nzimmlo # (RES, nzimm=0; HINT, rd=0)
+c_srli                100a00bb bccccc01, b:rs1_rd, a:nzuimmhi, c:nzuimmlo        # (RV32 NSE, nzuimm[5]=1)
+c_srai                100a01bb bccccc01, b:rs1_rd, a:nzuimmhi, c:nzuimmlo        # (RV32 NSE, nzuimm[5]=1)
+c_andi                100a10bb bccccc01, b:rs1_rd, a:immhi, c:immlo
+c_sub                 100011aa a00bbb01, a:rs1_rd, b:rs2
+c_xor                 100011aa a01bbb01, a:rs1_rd, b:rs2
+c_or                  100011aa a10bbb01, a:rs1_rd, b:rs2
+c_and                 100011aa a11bbb01, a:rs1_rd, b:rs2
+c_j                   101aaaaa aaaaaa01, a:imm
+c_beqz                110aaabb bccccc01, b:rs1, a:immhi, c:immlo
+c_bnez                111aaabb bccccc01, b:rs1, a:immhi, c:immlo
+# Instruction listing for RVC, Quadrant 2
+c_slli                000abbbb bccccc10, b:rs1_rd:!:0, a:nzuimmhi, c:nzuimmlo    # (HINT, rd=0; RV32 NSE, nzuimm[5]=1)
+c_lwsp                010abbbb bccccc10, b:rd:!:0, a:uimmhi, c:uimmlo            # (RES, rd=0)
+c_jr                  1000aaaa a0000010, a:rs1:!:0                               # (RES, rs1=0)
+c_mv                  1000aaaa abbbbb10, a:rd:!:0, b:rs2:!:0                     # (HINT, rd=0)
+c_ebreak              10010000 00000010
+c_jalr                1001aaaa a0000010, a:rs1:!:0
+c_add                 1001aaaa abbbbb10, a:rs1_rd:!:0, b:rs2:!:0                 # (HINT, rd=0)
+c_swsp                110aaaaa abbbbb10, b:rs2, a:uimm

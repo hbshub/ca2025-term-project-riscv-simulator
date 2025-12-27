@@ -1,0 +1,9 @@
+# RV32M Standard Extension for Integer Multiplication and Division-- RV32M 2.0 Ratified
+mul              0000001a aaaabbbb b000cccc c0110011, c:rd, b:rs1, a:rs2
+mulh             0000001a aaaabbbb b001cccc c0110011, c:rd, b:rs1, a:rs2
+mulhsu           0000001a aaaabbbb b010cccc c0110011, c:rd, b:rs1, a:rs2
+mulhu            0000001a aaaabbbb b011cccc c0110011, c:rd, b:rs1, a:rs2
+div              0000001a aaaabbbb b100cccc c0110011, c:rd, b:rs1, a:rs2
+divu             0000001a aaaabbbb b101cccc c0110011, c:rd, b:rs1, a:rs2
+rem              0000001a aaaabbbb b110cccc c0110011, c:rd, b:rs1, a:rs2
+remu             0000001a aaaabbbb b111cccc c0110011, c:rd, b:rs1, a:rs2
