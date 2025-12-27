@@ -35,7 +35,12 @@ static uint8_t *read_file(const char *filename, size_t *out_size)
     rewind(file);
 
     uint8_t *code = malloc(code_size);
-    fread(code, sizeof(uint8_t), code_size, file);
+    size_t read_size = fread(code, sizeof(uint8_t), code_size, file);
+    if (read_size != code_size) {
+        fprintf(stderr, "Failed to read the entire file %s\n", filename);
+        fclose(file);
+        exit(-1);
+    }
     fclose(file);
 
     *out_size = code_size;

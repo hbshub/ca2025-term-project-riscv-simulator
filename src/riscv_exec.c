@@ -7,21 +7,6 @@ static const ext_t *rv32_extensions[] = {
     &ext_rv32i,
 };
 
-void riscv_decode(uint32_t raw, insn_t *inst)
-{
-    uint8_t opcode = raw & OPCODE_MASK;
-    uint8_t rd = (raw >> RD_SHIFT) & REG_ADDR_MASK;
-    uint8_t rs1 = (raw >> RS1_SHIFT) & REG_ADDR_MASK;
-    uint8_t rs2 = (raw >> RS2_SHIFT) & REG_ADDR_MASK;
-    uint8_t funct3 = (raw >> FUNCT3_SHIFT) & FUNCT3_MASK;
-    uint8_t funct7 = (raw >> FUNCT7_SHIFT) & FUNCT7_MASK;
-
-    inst->opcode = opcode;
-    inst->rd = rd, inst->rs1 = rs1, inst->rs2 = rs2;
-    inst->funct3 = funct3;
-    inst->funct7 = funct7;
-}
-
 vm_step_result_t riscv_execute(cpu_t *cpu, uint32_t raw, uint32_t pc_current)
 {
     for (size_t i = 0; i < sizeof(rv32_extensions) / sizeof(rv32_extensions[0]); i++) {

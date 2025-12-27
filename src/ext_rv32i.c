@@ -1,6 +1,7 @@
 #include "ext.h"
 #include "riscv_exec.h"
-#include "riscv_isa.h"
+#include "pie-rv32i-decoder.h"
+#include "pie-rv32i-field-decoder.h"
 
 enum { 
     SYSCALL_WRITE = 64,
@@ -42,216 +43,232 @@ static bool rv32i_match(uint32_t raw, int len) {
   return len == 4;
 }
 
-static vm_step_result_t rv32i_exec(cpu_t *cpu, uint32_t raw, int len, uint32_t pc) {
-    insn_t inst;
-    riscv_decode(raw, &inst);
+// 
+static vm_step_result_t pie_rv32i_exec(cpu_t *cpu, uint32_t raw, int len, uint32_t pc) {
+    // pie decoder method
+    rv32i_instruction inst_type = rv32i_decode(&raw);
 
+    // default PC increment
     cpu->pc = pc + len;
 
-    switch (inst.opcode) {
-    case INTEGER_COMP_RR: {
-        switch (inst.funct3) {
-        case ADD_SUB:
-            if ((inst.funct7 >> 5) & 0x1) // SUB
-                cpu->regs[inst.rd] = (int32_t)cpu->regs[inst.rs1] - (int32_t)cpu->regs[inst.rs2];
-            else // ADD
-                cpu->regs[inst.rd] = cpu->regs[inst.rs1] + cpu->regs[inst.rs2];
+    // pie decode fields
+    unsigned int rd, rs1, rs2;
+    unsigned int raw_imm;      // for I/U/J type
+    unsigned int immhi, immlo; // for S/B type
+    unsigned int shamt;        // for Shift instructions
+    int32_t imm;               // for the sign-extended immediate
+
+    switch (inst_type) {
+    
+        /* === R-Type (Register-Register) === */
+        case RV32I_ADD:
+            rv32i_add_decode_fields(&raw, &rd, &rs1, &rs2);
+            cpu->regs[rd] = cpu->regs[rs1] + cpu->regs[rs2];
             break;
-        case XOR:
-            cpu->regs[inst.rd] = cpu->regs[inst.rs1] ^ cpu->regs[inst.rs2];
+        case RV32I_SUB:
+            rv32i_sub_decode_fields(&raw, &rd, &rs1, &rs2);
+            cpu->regs[rd] = (int32_t)cpu->regs[rs1] - (int32_t)cpu->regs[rs2];
             break;
-        case OR:
-            cpu->regs[inst.rd] = cpu->regs[inst.rs1] | cpu->regs[inst.rs2];
+        case RV32I_XOR:
+            rv32i_xor_decode_fields(&raw, &rd, &rs1, &rs2);
+            cpu->regs[rd] = cpu->regs[rs1] ^ cpu->regs[rs2];
             break;
-        case AND:
-            cpu->regs[inst.rd] = cpu->regs[inst.rs1] & cpu->regs[inst.rs2];
+        case RV32I_OR:
+            rv32i_or_decode_fields(&raw, &rd, &rs1, &rs2);
+            cpu->regs[rd] = cpu->regs[rs1] | cpu->regs[rs2];
             break;
-        case SLL:
-            cpu->regs[inst.rd] = cpu->regs[inst.rs1] << (cpu->regs[inst.rs2] & 0x1F);
+        case RV32I_AND:
+            rv32i_and_decode_fields(&raw, &rd, &rs1, &rs2);
+            cpu->regs[rd] = cpu->regs[rs1] & cpu->regs[rs2];
             break;
-        case SRL_SRA:
-            if ((inst.funct7 >> 5) & 0x1) // SRA
-                cpu->regs[inst.rd] = (int32_t)cpu->regs[inst.rs1] >> (cpu->regs[inst.rs2] & 0x1F);
-            else // SRL
-                cpu->regs[inst.rd] = (uint32_t)cpu->regs[inst.rs1] >> (cpu->regs[inst.rs2] & 0x1F);
+        case RV32I_SLL:
+            rv32i_sll_decode_fields(&raw, &rd, &rs1, &rs2);
+            cpu->regs[rd] = cpu->regs[rs1] << (cpu->regs[rs2] & 0x1F);
             break;
-        case SLT:
-            cpu->regs[inst.rd] = ((int32_t)cpu->regs[inst.rs1] < (int32_t)cpu->regs[inst.rs2]) ? 1 : 0;
+        case RV32I_SRL:
+            rv32i_srl_decode_fields(&raw, &rd, &rs1, &rs2);
+            cpu->regs[rd] = (uint32_t)cpu->regs[rs1] >> (cpu->regs[rs2] & 0x1F);
             break;
-        case SLTU:
-            cpu->regs[inst.rd] = (cpu->regs[inst.rs1] < cpu->regs[inst.rs2]) ? 1 : 0;
+        case RV32I_SRA:
+            rv32i_sra_decode_fields(&raw, &rd, &rs1, &rs2);
+            cpu->regs[rd] = (int32_t)cpu->regs[rs1] >> (cpu->regs[rs2] & 0x1F);
             break;
+        case RV32I_SLT:
+            rv32i_slt_decode_fields(&raw, &rd, &rs1, &rs2);
+            cpu->regs[rd] = ((int32_t)cpu->regs[rs1] < (int32_t)cpu->regs[rs2]) ? 1 : 0;
+            break;
+        case RV32I_SLTU:
+            rv32i_sltu_decode_fields(&raw, &rd, &rs1, &rs2);
+            cpu->regs[rd] = (cpu->regs[rs1] < cpu->regs[rs2]) ? 1 : 0;
+            break;
+
+        /* === I-Type (Register-Immediate) === */
+        case RV32I_ADDI:
+            rv32i_addi_decode_fields(&raw, &rd, &rs1, &raw_imm);
+            cpu->regs[rd] = cpu->regs[rs1] + pie_i_imm(raw_imm);
+            break;
+        case RV32I_XORI:
+            rv32i_xori_decode_fields(&raw, &rd, &rs1, &raw_imm);
+            cpu->regs[rd] = cpu->regs[rs1] ^ pie_i_imm(raw_imm);
+            break;
+        case RV32I_ORI:
+            rv32i_ori_decode_fields(&raw, &rd, &rs1, &raw_imm);
+            cpu->regs[rd] = cpu->regs[rs1] | pie_i_imm(raw_imm);
+            break;
+        case RV32I_ANDI:
+            rv32i_andi_decode_fields(&raw, &rd, &rs1, &raw_imm);
+            cpu->regs[rd] = cpu->regs[rs1] & pie_i_imm(raw_imm);
+            break;
+        case RV32I_SLTI:
+            rv32i_slti_decode_fields(&raw, &rd, &rs1, &raw_imm);
+            cpu->regs[rd] = ((int32_t)cpu->regs[rs1] < pie_i_imm(raw_imm)) ? 1 : 0;
+            break;
+        case RV32I_SLTIU:
+            rv32i_sltiu_decode_fields(&raw, &rd, &rs1, &raw_imm);
+            cpu->regs[rd] = ((uint32_t)cpu->regs[rs1] < (uint32_t)pie_i_imm(raw_imm)) ? 1 : 0;
+            break;
+        
+        // Shift Immediate 比較特殊，有 shamt 欄位
+        case RV32I_SLLI:
+            rv32i_slli_decode_fields(&raw, &rd, &rs1, &shamt);
+            cpu->regs[rd] = cpu->regs[rs1] << shamt;
+            break;
+        case RV32I_SRLI:
+            rv32i_srli_decode_fields(&raw, &rd, &rs1, &shamt);
+            cpu->regs[rd] = (uint32_t)cpu->regs[rs1] >> shamt;
+            break;
+        case RV32I_SRAI:
+            rv32i_srai_decode_fields(&raw, &rd, &rs1, &shamt);
+            cpu->regs[rd] = (int32_t)cpu->regs[rs1] >> shamt;
+            break;
+
+        /* === Load Instructions === */
+        case RV32I_LB:
+        case RV32I_LH:
+        case RV32I_LW:
+        case RV32I_LBU:
+        case RV32I_LHU: {
+
+            rv32i_lw_decode_fields(&raw, &rd, &rs1, &raw_imm);
+            
+            uint32_t addr = cpu->regs[rs1] + pie_i_imm(raw_imm);
+            switch (inst_type) {
+                case RV32I_LB:
+                    cpu->regs[rd] = (int8_t)cpu_load(cpu, addr, 8); break;
+                case RV32I_LBU:
+                    cpu->regs[rd] = (uint8_t)cpu_load(cpu, addr, 8); break;
+                case RV32I_LH:
+                    if (addr & 1) fatal("Unaligned LOAD (LH): 0x%x\n", addr);
+                    cpu->regs[rd] = (int16_t)cpu_load(cpu, addr, 16); break;
+                case RV32I_LHU:
+                    if (addr & 1) fatal("Unaligned LOAD (LHU): 0x%x\n", addr);
+                    cpu->regs[rd] = (uint16_t)cpu_load(cpu, addr, 16); break;
+                case RV32I_LW:
+                    if (addr & 3) fatal("Unaligned LOAD (LW): 0x%x\n", addr);
+                    cpu->regs[rd] = (int32_t)cpu_load(cpu, addr, 32); break;
+                default: break;
+            }
+            break;
+        }
+
+        /* === Store Instructions (S-Type) === */
+        case RV32I_SB:
+        case RV32I_SH:
+        case RV32I_SW: {
+
+            rv32i_sw_decode_fields(&raw, &rs2, &rs1, &immhi, &immlo);
+
+            uint32_t addr = cpu->regs[rs1] + pie_s_imm(immhi, immlo);
+            switch (inst_type) {
+                case RV32I_SB:
+                    cpu_store(cpu, addr, 8, cpu->regs[rs2] & 0xFF); break;
+                case RV32I_SH:
+                    if (addr & 1) fatal("Unaligned STORE (SH): 0x%x\n", addr);
+                    cpu_store(cpu, addr, 16, cpu->regs[rs2] & 0xFFFF); break;
+                case RV32I_SW:
+                    if (addr & 3) fatal("Unaligned STORE (SW): 0x%x\n", addr);
+                    cpu_store(cpu, addr, 32, cpu->regs[rs2]); break;
+                default: break;
+            }
+            break;
+        }
+
+        /* === Branch Instructions (B-Type) === */
+        case RV32I_BEQ:
+        case RV32I_BNE:
+        case RV32I_BLT:
+        case RV32I_BGE:
+        case RV32I_BLTU:
+        case RV32I_BGEU: {
+
+            rv32i_beq_decode_fields(&raw, &rs1, &rs2, &immhi, &immlo);
+            
+            imm = pie_b_imm(immhi, immlo);
+            uint32_t target_pc = pc + imm;
+            bool take_branch = false;
+
+            switch (inst_type) {
+                case RV32I_BEQ:  take_branch = (cpu->regs[rs1] == cpu->regs[rs2]); break;
+                case RV32I_BNE:  take_branch = (cpu->regs[rs1] != cpu->regs[rs2]); break;
+                case RV32I_BLT:  take_branch = ((int32_t)cpu->regs[rs1] < (int32_t)cpu->regs[rs2]); break;
+                case RV32I_BGE:  take_branch = ((int32_t)cpu->regs[rs1] >= (int32_t)cpu->regs[rs2]); break;
+                case RV32I_BLTU: take_branch = (cpu->regs[rs1] < cpu->regs[rs2]); break;
+                case RV32I_BGEU: take_branch = (cpu->regs[rs1] >= cpu->regs[rs2]); break;
+                default: break;
+            }
+
+            if (take_branch) cpu->pc = target_pc;
+            break;
+        }
+
+        /* === U-Type Instructions === */
+        case RV32I_LUI:
+        case RV32I_AUIPC: {
+            
+            rv32i_lui_decode_fields(&raw, &rd, &raw_imm);
+            int32_t imm = pie_u_imm(raw_imm);
+
+            if (inst_type == RV32I_LUI) { // LUI
+                cpu->regs[rd] = imm;
+            }
+            else { // AUIPC
+                cpu->regs[rd] = pc + imm;
+            }
+            break;
+        }
+
+        /* === Jump Instructions === */
+        case RV32I_JAL: { // J-Type
+            rv32i_jal_decode_fields(&raw, &rd, &raw_imm);
+            cpu->regs[rd] = pc + len;
+            cpu->pc = pc + pie_j_imm(raw_imm);
+            break;
+        }
+        case RV32I_JALR: { // I-Type style immediate
+            rv32i_jalr_decode_fields(&raw, &rd, &rs1, &raw_imm);
+            uint32_t target = (cpu->regs[rs1] + pie_i_imm(raw_imm)) & ~1;
+            if (rd != 0) cpu->regs[rd] = pc + len;
+            cpu->pc = target;
+            break;
+        }
+
+        /* === System Instructions === */
+        case RV32I_ECALL: {
+            vm_step_result_t result = ecall_handler(cpu);
+            if (result != VM_STEP_RESULT_OK) return result;
+            break;
+        }
+
+        case RV32I_EBREAK:
+            return VM_STEP_RESULT_HALT;
+
+        case RV32I_FENCE:
+            // No-op
+            break;
+
         default:
-            fatal("Unknown FUNCT3 for INTEGER_COMP_RR: 0x%x\n", inst.funct3);
-        }
-        break;
-    }
-
-    case INTEGER_COMP_RI: {
-        int32_t imm = i_imm(raw);
-        switch (inst.funct3) {
-        case ADDI:
-            cpu->regs[inst.rd] = cpu->regs[inst.rs1] + imm;
+            fatal("Illegal Instruction 0x%x at PC 0x%x\n", raw, pc);
             break;
-        case XORI:
-            cpu->regs[inst.rd] = cpu->regs[inst.rs1] ^ imm;
-            break;
-        case ORI:
-            cpu->regs[inst.rd] = cpu->regs[inst.rs1] | imm;
-            break;
-        case ANDI:
-            cpu->regs[inst.rd] = cpu->regs[inst.rs1] & imm;
-            break;
-        case SLLI:
-            cpu->regs[inst.rd] = cpu->regs[inst.rs1] << (imm & 0x1F);
-            break;
-        case SRLI_SRAI:
-            if ((inst.funct7 >> 5) & 0x1) // SRAI
-                cpu->regs[inst.rd] = (int32_t)cpu->regs[inst.rs1] >> (imm & 0x1F);
-            else // SRLI
-                cpu->regs[inst.rd] = (uint32_t)cpu->regs[inst.rs1] >> (imm & 0x1F);
-            break;
-        case SLTI:
-            cpu->regs[inst.rd] = ((int32_t)cpu->regs[inst.rs1] < imm) ? 1 : 0;
-            break;
-        case SLTIU:
-            cpu->regs[inst.rd] = ((uint32_t)cpu->regs[inst.rs1] < (uint32_t)imm) ? 1 : 0;
-            break;
-        default:
-            fatal("Unknown FUNCT3 for INTEGER_COMP_RI: 0x%x\n", inst.funct3);
-        }
-        break;
-    }
-
-    case LOAD: {
-        int32_t imm = i_imm(raw);
-        uint32_t addr = cpu->regs[inst.rs1] + imm;
-        switch (inst.funct3) {
-        case LB:
-            cpu->regs[inst.rd] = (int8_t)cpu_load(cpu, addr, 8);
-            break;
-        case LH:
-            if (addr & 1) fatal("Unaligned LOAD (LH): 0x%x\n", addr);
-            cpu->regs[inst.rd] = (int16_t)cpu_load(cpu, addr, 16);
-            break;
-        case LW:
-            if (addr & 3) fatal("Unaligned LOAD (LW): 0x%x\n", addr);
-            cpu->regs[inst.rd] = (int32_t)cpu_load(cpu, addr, 32);
-            break;
-        case LBU:
-            cpu->regs[inst.rd] = (uint8_t)cpu_load(cpu, addr, 8);
-            break;
-        case LHU:
-            if (addr & 1) fatal("Unaligned LOAD (LHU): 0x%x\n", addr);
-            cpu->regs[inst.rd] = (uint16_t)cpu_load(cpu, addr, 16);
-            break;
-        default:
-            fatal("Unknown FUNCT3 for LOAD: 0x%x\n", inst.funct3);
-        }
-        break;
-    }
-
-    case STORE: {
-        int32_t imm = s_imm(raw);
-        uint32_t addr = cpu->regs[inst.rs1] + imm;
-        uint32_t val = cpu->regs[inst.rs2];
-        switch (inst.funct3) {
-        case SB:
-            cpu_store(cpu, addr, 8, val & 0xFF);
-            break;
-        case SH:
-            if (addr & 1) fatal("Unaligned STORE (SH): 0x%x\n", addr);
-            cpu_store(cpu, addr, 16, val & 0xFFFF);
-            break;
-        case SW:
-            if (addr & 3) fatal("Unaligned STORE (SW): 0x%x\n", addr);
-            cpu_store(cpu, addr, 32, val);
-            break;
-        default:
-            fatal("Unknown FUNCT3 for STORE: 0x%x\n", inst.funct3);
-        }
-        break;
-    }
-
-    case BRANCH: {
-        int32_t imm = b_imm(raw);
-        uint32_t target_pc = pc + imm;
-        bool take_branch = false;
-        switch (inst.funct3) {
-        case BEQ:
-            take_branch = (cpu->regs[inst.rs1] == cpu->regs[inst.rs2]);
-            break;
-        case BNE:
-            take_branch = (cpu->regs[inst.rs1] != cpu->regs[inst.rs2]);
-            break;
-        case BLT:
-            take_branch = ((int32_t)cpu->regs[inst.rs1] < (int32_t)cpu->regs[inst.rs2]);
-            break;
-        case BGE:
-            take_branch = ((int32_t)cpu->regs[inst.rs1] >= (int32_t)cpu->regs[inst.rs2]);
-            break;
-        case BLTU:
-            take_branch = (cpu->regs[inst.rs1] < cpu->regs[inst.rs2]);
-            break;
-        case BGEU:
-            take_branch = (cpu->regs[inst.rs1] >= cpu->regs[inst.rs2]);
-            break;
-        default:
-            fatal("Unknown FUNCT3 for BRANCH: 0x%x\n", inst.funct3);
-        }
-        if (take_branch) {
-            cpu->pc = target_pc;
-        }
-        break;
-    }
-
-    case JAL: {
-        int32_t imm = j_imm(raw);
-        cpu->regs[inst.rd] = pc + len;
-        cpu->pc = pc + imm;
-        break;
-    }
-
-    case JALR: {
-        int32_t imm = i_imm(raw);
-        uint32_t target = (cpu->regs[inst.rs1] + imm) & ~1;
-        // cpu->regs[inst.rd] = pc + len;
-        if (inst.rd != 0) {
-            cpu->regs[inst.rd] = pc + len;
-        }
-        cpu->pc = target;
-        break;
-    }
-
-    case AUIPC: {
-        int32_t imm = u_imm(raw);
-        cpu->regs[inst.rd] = pc + imm;
-        break;
-    }
-
-    case LUI: {
-        int32_t imm = u_imm(raw);
-        cpu->regs[inst.rd] = imm;
-        break;
-    }
-
-    case ECALL: {
-        // EBREAK stop execution
-        if (raw == 0x100073) return VM_STEP_RESULT_HALT;
-        vm_step_result_t result = ecall_handler(cpu);
-        if (result != VM_STEP_RESULT_OK) {
-            return result;
-        }
-        break;
-    }
-
-    case FENCE: {
-        // No operation for FENCE in this simple simulator
-        break;
-    }
-
-    default:
-        fatal("Illegal Instruction 0x%x at PC 0x%x\n", inst.opcode, pc);
     }
     cpu->regs[0] = 0; // x0 is always zero
     return VM_STEP_RESULT_OK;
@@ -260,5 +277,5 @@ static vm_step_result_t rv32i_exec(cpu_t *cpu, uint32_t raw, int len, uint32_t p
 const ext_t ext_rv32i = {
     .name = "RV32I",
     .match = rv32i_match,
-    .exec = rv32i_exec
+    .exec = pie_rv32i_exec
 };
