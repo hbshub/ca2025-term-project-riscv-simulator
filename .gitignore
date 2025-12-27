@@ -18,5 +18,4 @@
 /main
 
 # tools and work directories
-/riscv_tools/
 /riscof_env/riscof_work/

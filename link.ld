@@ -4,12 +4,12 @@ ENTRY( _start )
 MEMORY
 {
   /* 2M MEMORY */
-  ram (wxa) : ORIGIN = 0x00000000, LENGTH = 2M
+  ram (rwx) : ORIGIN = 0x80000000, LENGTH = 2M
 }
 
 SECTIONS
 {
-  . = 0x00000000;
+  . = 0x80000000;
 
   /* Code Data */
   .text : {
@@ -18,11 +18,27 @@ SECTIONS
 
   /* Read-only Data */
   .rodata : {
+    . = ALIGN(4);
     *(.rodata .rodata.*)
   } > ram
 
   /* Data */
   .data : {
+    . = ALIGN(8);
     *(.data .data.*)
   } > ram
+
+  /* BSS */
+  .bss : {
+    . = ALIGN(8);
+    _sbss = .;
+    *(.bss .bss.*)
+    *(COMMON)
+    . = ALIGN(8);
+    _ebss = .;
+  } > ram
+
+  /* Stack */
+  . = ALIGN(16);
+  PROVIDE( _stack_top = ORIGIN(ram) + LENGTH(ram) );
 }
