@@ -74,8 +74,11 @@ clean:
 	rm -f test/*.elf src/*.o $(GEN_OUT_DIR)/*.o main test/*.bin
 
 hello:
-	@echo "--- Running Simulator ---"
+	@echo "--- Running hello.S ---"
 	@./main test/hello.bin /dev/null 0 0 0
+echo:
+	@echo "--- Running echo.S ---"
+	@./main test/echo.bin /dev/null 0 0 0
 
 # --- Pie Generation Rules ---
 PIE_TARGETS  = pie-$(TARGET_ARCH)-decoder.c \

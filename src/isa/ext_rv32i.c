@@ -5,6 +5,7 @@
 
 enum { 
     SYSCALL_WRITE = 64,
+    SYSCALL_READ = 63,
     SYSCALL_EXIT = 93 
 };
 enum { 
@@ -16,9 +17,9 @@ vm_step_result_t ecall_handler(cpu_t *cpu) {
     uint32_t syscall_nr = cpu->regs[17];
     switch (syscall_nr) {
         case SYSCALL_WRITE: {
-            uint32_t fd = cpu->regs[10];
-            uint32_t addr = cpu->regs[11];
-            uint32_t count = cpu->regs[12];
+            uint32_t fd     = cpu->regs[10];
+            uint32_t addr   = cpu->regs[11];
+            uint32_t count  = cpu->regs[12];
             
             FILE *stream = (fd == STDOUT) ? stdout : (fd == STDERR) ? stderr : NULL;
             if (!stream) fatal("Invalid file descriptor: %d\n", fd);
@@ -26,6 +27,25 @@ vm_step_result_t ecall_handler(cpu_t *cpu) {
                 fprintf(stream, "%c", cpu_load(cpu, addr + i, 8));
             }
             // RISC-V Linux ABI returns number of bytes written in a0
+            cpu->regs[10] = count;
+            printf("\n");
+            return VM_STEP_RESULT_OK;
+        }
+        case SYSCALL_READ: {
+            uint32_t fd     = cpu->regs[10];
+            uint32_t addr   = cpu->regs[11];
+            uint32_t count  = cpu->regs[12];
+
+            if (fd != 0) fatal("Invalid fd for read: %d\n", fd);
+
+            for (uint32_t i = 0; i < count; i++) {
+                int c = fgetc(stdin);
+                if (c == '\n') {
+                    cpu->regs[10] = i;
+                    return VM_STEP_RESULT_OK;
+                }
+                cpu_store(cpu, addr + i, 8, (uint8_t)c);
+            }
             cpu->regs[10] = count;
             return VM_STEP_RESULT_OK;
         }
@@ -39,17 +59,12 @@ vm_step_result_t ecall_handler(cpu_t *cpu) {
     }
 }
 
-static bool rv32i_match(uint32_t raw, int len) {
-  return len == 4;
-}
-
-// 
-static vm_step_result_t pie_rv32i_exec(cpu_t *cpu, uint32_t raw, int len, uint32_t pc) {
+static vm_step_result_t pie_rv32i_exec(cpu_t *cpu, rv32i_instruction inst_id, uint32_t raw, uint32_t pc) {
     // pie decoder method
     rv32i_instruction inst_type = rv32i_decode(&raw);
 
-    // default PC increment
-    cpu->pc = pc + len;
+    // I, M pc increment
+    cpu->pc = pc + 4;
 
     // pie decode fields
     unsigned int rd, rs1, rs2;
@@ -240,14 +255,14 @@ static vm_step_result_t pie_rv32i_exec(cpu_t *cpu, uint32_t raw, int len, uint32
         /* === Jump Instructions === */
         case RV32I_JAL: { // J-Type
             rv32i_jal_decode_fields(&raw, &rd, &raw_imm);
-            cpu->regs[rd] = pc + len;
+            cpu->regs[rd] = pc + 4;
             cpu->pc = pc + pie_j_imm(raw_imm);
             break;
         }
         case RV32I_JALR: { // I-Type style immediate
             rv32i_jalr_decode_fields(&raw, &rd, &rs1, &raw_imm);
             uint32_t target = (cpu->regs[rs1] + pie_i_imm(raw_imm)) & ~1;
-            if (rd != 0) cpu->regs[rd] = pc + len;
+            if (rd != 0) cpu->regs[rd] = pc + 4;
             cpu->pc = target;
             break;
         }
@@ -276,6 +291,7 @@ static vm_step_result_t pie_rv32i_exec(cpu_t *cpu, uint32_t raw, int len, uint32
 
 const ext_t ext_rv32i = {
     .name = "RV32I",
-    .match = rv32i_match,
+    .start_id = RV32I_LUI,
+    .end_id = RV32I_EBREAK,
     .exec = pie_rv32i_exec
 };

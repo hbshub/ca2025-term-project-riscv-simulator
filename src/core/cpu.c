@@ -1,5 +1,11 @@
 #include "ram.h"
 #include "cpu.h"
+#include "riscv_exec.h"
+
+extern const ext_t ext_rv32i;
+static const ext_t *rv32_extensions[] = {
+    &ext_rv32i,
+};
 
 cpu_t *cpu_new(ram_t *ram)
 {
@@ -9,6 +15,12 @@ cpu_t *cpu_new(ram_t *ram)
     cpu->regs[2] = RAM_BASE + RAM_SIZE;
     cpu->pc = RAM_BASE;
     cpu->ram = ram;
+    
+    /* Init dispatch table */
+    riscv_init_dispatch_table(
+        rv32_extensions, 
+        sizeof(rv32_extensions) / sizeof(rv32_extensions[0])
+    );
     return cpu;
 }
 
