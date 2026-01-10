@@ -10,7 +10,7 @@ CONFIG_DIR   = pie_config
 CORE_DIR     = src/core
 ISA_DIR      = src/isa
 GEN_OUT_DIR  = src/isa/generated
-TARGET_ARCH  = rv32i
+TARGET_ARCH  = rv32im
 
 # Host toolchain
 CC          = gcc
@@ -86,7 +86,8 @@ PIE_TARGETS  = pie-$(TARGET_ARCH)-decoder.c \
                pie-$(TARGET_ARCH)-field-decoder.c \
                pie-$(TARGET_ARCH)-field-decoder.h
 
-ISA_PARTS    = $(CONFIG_DIR)/rv32i.txt
+ISA_PARTS    = $(CONFIG_DIR)/rv32i.txt \
+			   $(CONFIG_DIR)/rv32m.txt
 
 gen_pie:
 	@echo "--- Generating PIE sources for $(TARGET_ARCH) ---"

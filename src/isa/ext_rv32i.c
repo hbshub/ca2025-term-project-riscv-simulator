@@ -1,7 +1,7 @@
 #include "ext.h"
 #include "riscv_exec.h"
-#include "pie-rv32i-decoder.h"
-#include "pie-rv32i-field-decoder.h"
+#include "pie-rv32im-decoder.h"
+#include "pie-rv32im-field-decoder.h"
 
 enum { 
     SYSCALL_WRITE = 64,
@@ -59,9 +59,7 @@ vm_step_result_t ecall_handler(cpu_t *cpu) {
     }
 }
 
-static vm_step_result_t pie_rv32i_exec(cpu_t *cpu, rv32i_instruction inst_id, uint32_t raw, uint32_t pc) {
-    // pie decoder method
-    rv32i_instruction inst_type = rv32i_decode(&raw);
+static vm_step_result_t pie_rv32i_exec(cpu_t *cpu, rv32im_instruction inst_id, uint32_t raw, uint32_t pc) {
 
     // I, M pc increment
     cpu->pc = pc + 4;
@@ -73,112 +71,111 @@ static vm_step_result_t pie_rv32i_exec(cpu_t *cpu, rv32i_instruction inst_id, ui
     unsigned int shamt;        // for Shift instructions
     int32_t imm;               // for the sign-extended immediate
 
-    switch (inst_type) {
+    switch (inst_id) {
     
         /* === R-Type (Register-Register) === */
-        case RV32I_ADD:
-            rv32i_add_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IM_ADD:
+            rv32im_add_decode_fields(&raw, &rd, &rs1, &rs2);
             cpu->regs[rd] = cpu->regs[rs1] + cpu->regs[rs2];
             break;
-        case RV32I_SUB:
-            rv32i_sub_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IM_SUB:
+            rv32im_sub_decode_fields(&raw, &rd, &rs1, &rs2);
             cpu->regs[rd] = (int32_t)cpu->regs[rs1] - (int32_t)cpu->regs[rs2];
             break;
-        case RV32I_XOR:
-            rv32i_xor_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IM_XOR:
+            rv32im_xor_decode_fields(&raw, &rd, &rs1, &rs2);
             cpu->regs[rd] = cpu->regs[rs1] ^ cpu->regs[rs2];
             break;
-        case RV32I_OR:
-            rv32i_or_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IM_OR:
+            rv32im_or_decode_fields(&raw, &rd, &rs1, &rs2);
             cpu->regs[rd] = cpu->regs[rs1] | cpu->regs[rs2];
             break;
-        case RV32I_AND:
-            rv32i_and_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IM_AND:
+            rv32im_and_decode_fields(&raw, &rd, &rs1, &rs2);
             cpu->regs[rd] = cpu->regs[rs1] & cpu->regs[rs2];
             break;
-        case RV32I_SLL:
-            rv32i_sll_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IM_SLL:
+            rv32im_sll_decode_fields(&raw, &rd, &rs1, &rs2);
             cpu->regs[rd] = cpu->regs[rs1] << (cpu->regs[rs2] & 0x1F);
             break;
-        case RV32I_SRL:
-            rv32i_srl_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IM_SRL:
+            rv32im_srl_decode_fields(&raw, &rd, &rs1, &rs2);
             cpu->regs[rd] = (uint32_t)cpu->regs[rs1] >> (cpu->regs[rs2] & 0x1F);
             break;
-        case RV32I_SRA:
-            rv32i_sra_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IM_SRA:
+            rv32im_sra_decode_fields(&raw, &rd, &rs1, &rs2);
             cpu->regs[rd] = (int32_t)cpu->regs[rs1] >> (cpu->regs[rs2] & 0x1F);
             break;
-        case RV32I_SLT:
-            rv32i_slt_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IM_SLT:
+            rv32im_slt_decode_fields(&raw, &rd, &rs1, &rs2);
             cpu->regs[rd] = ((int32_t)cpu->regs[rs1] < (int32_t)cpu->regs[rs2]) ? 1 : 0;
             break;
-        case RV32I_SLTU:
-            rv32i_sltu_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IM_SLTU:
+            rv32im_sltu_decode_fields(&raw, &rd, &rs1, &rs2);
             cpu->regs[rd] = (cpu->regs[rs1] < cpu->regs[rs2]) ? 1 : 0;
             break;
 
         /* === I-Type (Register-Immediate) === */
-        case RV32I_ADDI:
-            rv32i_addi_decode_fields(&raw, &rd, &rs1, &raw_imm);
+        case RV32IM_ADDI:
+            rv32im_addi_decode_fields(&raw, &rd, &rs1, &raw_imm);
             cpu->regs[rd] = cpu->regs[rs1] + pie_i_imm(raw_imm);
             break;
-        case RV32I_XORI:
-            rv32i_xori_decode_fields(&raw, &rd, &rs1, &raw_imm);
+        case RV32IM_XORI:
+            rv32im_xori_decode_fields(&raw, &rd, &rs1, &raw_imm);
             cpu->regs[rd] = cpu->regs[rs1] ^ pie_i_imm(raw_imm);
             break;
-        case RV32I_ORI:
-            rv32i_ori_decode_fields(&raw, &rd, &rs1, &raw_imm);
+        case RV32IM_ORI:
+            rv32im_ori_decode_fields(&raw, &rd, &rs1, &raw_imm);
             cpu->regs[rd] = cpu->regs[rs1] | pie_i_imm(raw_imm);
             break;
-        case RV32I_ANDI:
-            rv32i_andi_decode_fields(&raw, &rd, &rs1, &raw_imm);
+        case RV32IM_ANDI:
+            rv32im_andi_decode_fields(&raw, &rd, &rs1, &raw_imm);
             cpu->regs[rd] = cpu->regs[rs1] & pie_i_imm(raw_imm);
             break;
-        case RV32I_SLTI:
-            rv32i_slti_decode_fields(&raw, &rd, &rs1, &raw_imm);
+        case RV32IM_SLTI:
+            rv32im_slti_decode_fields(&raw, &rd, &rs1, &raw_imm);
             cpu->regs[rd] = ((int32_t)cpu->regs[rs1] < pie_i_imm(raw_imm)) ? 1 : 0;
             break;
-        case RV32I_SLTIU:
-            rv32i_sltiu_decode_fields(&raw, &rd, &rs1, &raw_imm);
+        case RV32IM_SLTIU:
+            rv32im_sltiu_decode_fields(&raw, &rd, &rs1, &raw_imm);
             cpu->regs[rd] = ((uint32_t)cpu->regs[rs1] < (uint32_t)pie_i_imm(raw_imm)) ? 1 : 0;
             break;
         
         // Shift Immediate 比較特殊，有 shamt 欄位
-        case RV32I_SLLI:
-            rv32i_slli_decode_fields(&raw, &rd, &rs1, &shamt);
+        case RV32IM_SLLI:
+            rv32im_slli_decode_fields(&raw, &rd, &rs1, &shamt);
             cpu->regs[rd] = cpu->regs[rs1] << shamt;
             break;
-        case RV32I_SRLI:
-            rv32i_srli_decode_fields(&raw, &rd, &rs1, &shamt);
+        case RV32IM_SRLI:
+            rv32im_srli_decode_fields(&raw, &rd, &rs1, &shamt);
             cpu->regs[rd] = (uint32_t)cpu->regs[rs1] >> shamt;
             break;
-        case RV32I_SRAI:
-            rv32i_srai_decode_fields(&raw, &rd, &rs1, &shamt);
+        case RV32IM_SRAI:
+            rv32im_srai_decode_fields(&raw, &rd, &rs1, &shamt);
             cpu->regs[rd] = (int32_t)cpu->regs[rs1] >> shamt;
             break;
 
         /* === Load Instructions === */
-        case RV32I_LB:
-        case RV32I_LH:
-        case RV32I_LW:
-        case RV32I_LBU:
-        case RV32I_LHU: {
-
-            rv32i_lw_decode_fields(&raw, &rd, &rs1, &raw_imm);
+        case RV32IM_LB:
+        case RV32IM_LH:
+        case RV32IM_LW:
+        case RV32IM_LBU:
+        case RV32IM_LHU: {
+            rv32im_lw_decode_fields(&raw, &rd, &rs1, &raw_imm);
             
             uint32_t addr = cpu->regs[rs1] + pie_i_imm(raw_imm);
-            switch (inst_type) {
-                case RV32I_LB:
+            switch (inst_id) {
+                case RV32IM_LB:
                     cpu->regs[rd] = (int8_t)cpu_load(cpu, addr, 8); break;
-                case RV32I_LBU:
+                case RV32IM_LBU:
                     cpu->regs[rd] = (uint8_t)cpu_load(cpu, addr, 8); break;
-                case RV32I_LH:
+                case RV32IM_LH:
                     if (addr & 1) fatal("Unaligned LOAD (LH): 0x%x\n", addr);
                     cpu->regs[rd] = (int16_t)cpu_load(cpu, addr, 16); break;
-                case RV32I_LHU:
+                case RV32IM_LHU:
                     if (addr & 1) fatal("Unaligned LOAD (LHU): 0x%x\n", addr);
                     cpu->regs[rd] = (uint16_t)cpu_load(cpu, addr, 16); break;
-                case RV32I_LW:
+                case RV32IM_LW:
                     if (addr & 3) fatal("Unaligned LOAD (LW): 0x%x\n", addr);
                     cpu->regs[rd] = (int32_t)cpu_load(cpu, addr, 32); break;
                 default: break;
@@ -187,20 +184,19 @@ static vm_step_result_t pie_rv32i_exec(cpu_t *cpu, rv32i_instruction inst_id, ui
         }
 
         /* === Store Instructions (S-Type) === */
-        case RV32I_SB:
-        case RV32I_SH:
-        case RV32I_SW: {
+        case RV32IM_SB:
+        case RV32IM_SH:
+        case RV32IM_SW: {
 
-            rv32i_sw_decode_fields(&raw, &rs2, &rs1, &immhi, &immlo);
-
+            rv32im_sw_decode_fields(&raw, &rs2, &rs1, &immhi, &immlo);
             uint32_t addr = cpu->regs[rs1] + pie_s_imm(immhi, immlo);
-            switch (inst_type) {
-                case RV32I_SB:
+            switch (inst_id) {
+                case RV32IM_SB:
                     cpu_store(cpu, addr, 8, cpu->regs[rs2] & 0xFF); break;
-                case RV32I_SH:
+                case RV32IM_SH:
                     if (addr & 1) fatal("Unaligned STORE (SH): 0x%x\n", addr);
                     cpu_store(cpu, addr, 16, cpu->regs[rs2] & 0xFFFF); break;
-                case RV32I_SW:
+                case RV32IM_SW:
                     if (addr & 3) fatal("Unaligned STORE (SW): 0x%x\n", addr);
                     cpu_store(cpu, addr, 32, cpu->regs[rs2]); break;
                 default: break;
@@ -209,26 +205,26 @@ static vm_step_result_t pie_rv32i_exec(cpu_t *cpu, rv32i_instruction inst_id, ui
         }
 
         /* === Branch Instructions (B-Type) === */
-        case RV32I_BEQ:
-        case RV32I_BNE:
-        case RV32I_BLT:
-        case RV32I_BGE:
-        case RV32I_BLTU:
-        case RV32I_BGEU: {
+        case RV32IM_BEQ:
+        case RV32IM_BNE:
+        case RV32IM_BLT:
+        case RV32IM_BGE:
+        case RV32IM_BLTU:
+        case RV32IM_BGEU: {
 
-            rv32i_beq_decode_fields(&raw, &rs1, &rs2, &immhi, &immlo);
+            rv32im_beq_decode_fields(&raw, &rs1, &rs2, &immhi, &immlo);
             
             imm = pie_b_imm(immhi, immlo);
             uint32_t target_pc = pc + imm;
             bool take_branch = false;
 
-            switch (inst_type) {
-                case RV32I_BEQ:  take_branch = (cpu->regs[rs1] == cpu->regs[rs2]); break;
-                case RV32I_BNE:  take_branch = (cpu->regs[rs1] != cpu->regs[rs2]); break;
-                case RV32I_BLT:  take_branch = ((int32_t)cpu->regs[rs1] < (int32_t)cpu->regs[rs2]); break;
-                case RV32I_BGE:  take_branch = ((int32_t)cpu->regs[rs1] >= (int32_t)cpu->regs[rs2]); break;
-                case RV32I_BLTU: take_branch = (cpu->regs[rs1] < cpu->regs[rs2]); break;
-                case RV32I_BGEU: take_branch = (cpu->regs[rs1] >= cpu->regs[rs2]); break;
+            switch (inst_id) {
+                case RV32IM_BEQ:  take_branch = (cpu->regs[rs1] == cpu->regs[rs2]); break;
+                case RV32IM_BNE:  take_branch = (cpu->regs[rs1] != cpu->regs[rs2]); break;
+                case RV32IM_BLT:  take_branch = ((int32_t)cpu->regs[rs1] < (int32_t)cpu->regs[rs2]); break;
+                case RV32IM_BGE:  take_branch = ((int32_t)cpu->regs[rs1] >= (int32_t)cpu->regs[rs2]); break;
+                case RV32IM_BLTU: take_branch = (cpu->regs[rs1] < cpu->regs[rs2]); break;
+                case RV32IM_BGEU: take_branch = (cpu->regs[rs1] >= cpu->regs[rs2]); break;
                 default: break;
             }
 
@@ -237,30 +233,24 @@ static vm_step_result_t pie_rv32i_exec(cpu_t *cpu, rv32i_instruction inst_id, ui
         }
 
         /* === U-Type Instructions === */
-        case RV32I_LUI:
-        case RV32I_AUIPC: {
+        case RV32IM_LUI:
+        case RV32IM_AUIPC: {
             
-            rv32i_lui_decode_fields(&raw, &rd, &raw_imm);
+            rv32im_lui_decode_fields(&raw, &rd, &raw_imm);
             int32_t imm = pie_u_imm(raw_imm);
-
-            if (inst_type == RV32I_LUI) { // LUI
-                cpu->regs[rd] = imm;
-            }
-            else { // AUIPC
-                cpu->regs[rd] = pc + imm;
-            }
+            cpu->regs[rd] = (inst_id == RV32IM_LUI) ? imm : pc + imm;
             break;
         }
 
         /* === Jump Instructions === */
-        case RV32I_JAL: { // J-Type
-            rv32i_jal_decode_fields(&raw, &rd, &raw_imm);
+        case RV32IM_JAL: { // J-Type
+            rv32im_jal_decode_fields(&raw, &rd, &raw_imm);
             cpu->regs[rd] = pc + 4;
             cpu->pc = pc + pie_j_imm(raw_imm);
             break;
         }
-        case RV32I_JALR: { // I-Type style immediate
-            rv32i_jalr_decode_fields(&raw, &rd, &rs1, &raw_imm);
+        case RV32IM_JALR: { // I-Type style immediate
+            rv32im_jalr_decode_fields(&raw, &rd, &rs1, &raw_imm);
             uint32_t target = (cpu->regs[rs1] + pie_i_imm(raw_imm)) & ~1;
             if (rd != 0) cpu->regs[rd] = pc + 4;
             cpu->pc = target;
@@ -268,16 +258,16 @@ static vm_step_result_t pie_rv32i_exec(cpu_t *cpu, rv32i_instruction inst_id, ui
         }
 
         /* === System Instructions === */
-        case RV32I_ECALL: {
+        case RV32IM_ECALL: {
             vm_step_result_t result = ecall_handler(cpu);
             if (result != VM_STEP_RESULT_OK) return result;
             break;
         }
 
-        case RV32I_EBREAK:
+        case RV32IM_EBREAK:
             return VM_STEP_RESULT_HALT;
 
-        case RV32I_FENCE:
+        case RV32IM_FENCE:
             // No-op
             break;
 
@@ -291,7 +281,7 @@ static vm_step_result_t pie_rv32i_exec(cpu_t *cpu, rv32i_instruction inst_id, ui
 
 const ext_t ext_rv32i = {
     .name = "RV32I",
-    .start_id = RV32I_LUI,
-    .end_id = RV32I_EBREAK,
+    .start_id = RV32IM_LUI,
+    .end_id = RV32IM_EBREAK,
     .exec = pie_rv32i_exec
 };

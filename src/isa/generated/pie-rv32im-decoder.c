@@ -1,6 +1,6 @@
-#include "pie-rv32i-decoder.h"
+#include "pie-rv32im-decoder.h"
 
-rv32i_instruction rv32i_decode(uint32_t *address) {
+rv32im_instruction rv32im_decode(uint32_t *address) {
   uint32_t instruction = *address;
   if ((instruction & (1 << 6)) == 0) {
     if ((instruction & (1 << 5)) == 0) {
@@ -11,17 +11,17 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
               if ((instruction & (1 << 3)) == 0) {
                 if ((instruction & (1 << 2)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx000xxxxx0000011
-                      return RV32I_LB;
+                      return RV32IM_LB;
                     }
                   }
                 } else {
-                  return RV32I_INVALID;
+                  return RV32IM_INVALID;
                 }
               } else {
                 if ((instruction & (1 << 19)) == 0) {
@@ -35,68 +35,68 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
                                 if ((instruction & (1 << 8)) == 0) {
                                   if ((instruction & (1 << 7)) == 0) {
                                     if ((instruction & (1 << 2)) == 0) {
-                                      return RV32I_INVALID;
+                                      return RV32IM_INVALID;
                                     } else {
                                       if ((instruction & (1 << 1)) == 0) {
-                                        return RV32I_INVALID;
+                                        return RV32IM_INVALID;
                                       } else {
                                         if ((instruction & (1 << 0)) == 0) {
-                                          return RV32I_INVALID;
+                                          return RV32IM_INVALID;
                                         } else {
                                           // xxxxxxxxxxxx00000000000000001111
-                                          return RV32I_FENCE;
+                                          return RV32IM_FENCE;
                                         }
                                       }
                                     }
                                   } else {
-                                    return RV32I_INVALID;
+                                    return RV32IM_INVALID;
                                   }
                                 } else {
-                                  return RV32I_INVALID;
+                                  return RV32IM_INVALID;
                                 }
                               } else {
-                                return RV32I_INVALID;
+                                return RV32IM_INVALID;
                               }
                             } else {
-                              return RV32I_INVALID;
+                              return RV32IM_INVALID;
                             }
                           } else {
-                            return RV32I_INVALID;
+                            return RV32IM_INVALID;
                           }
                         } else {
-                          return RV32I_INVALID;
+                          return RV32IM_INVALID;
                         }
                       } else {
-                        return RV32I_INVALID;
+                        return RV32IM_INVALID;
                       }
                     } else {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     }
                   } else {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   }
                 } else {
-                  return RV32I_INVALID;
+                  return RV32IM_INVALID;
                 }
               }
             } else {
               if ((instruction & (1 << 3)) == 0) {
                 if ((instruction & (1 << 2)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx001xxxxx0000011
-                      return RV32I_LH;
+                      return RV32IM_LH;
                     }
                   }
                 } else {
-                  return RV32I_INVALID;
+                  return RV32IM_INVALID;
                 }
               } else {
-                return RV32I_INVALID;
+                return RV32IM_INVALID;
               }
             }
           } else {
@@ -104,23 +104,23 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
               if ((instruction & (1 << 3)) == 0) {
                 if ((instruction & (1 << 2)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx010xxxxx0000011
-                      return RV32I_LW;
+                      return RV32IM_LW;
                     }
                   }
                 } else {
-                  return RV32I_INVALID;
+                  return RV32IM_INVALID;
                 }
               } else {
-                return RV32I_INVALID;
+                return RV32IM_INVALID;
               }
             } else {
-              return RV32I_INVALID;
+              return RV32IM_INVALID;
             }
           }
         } else {
@@ -129,43 +129,43 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
               if ((instruction & (1 << 3)) == 0) {
                 if ((instruction & (1 << 2)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx100xxxxx0000011
-                      return RV32I_LBU;
+                      return RV32IM_LBU;
                     }
                   }
                 } else {
-                  return RV32I_INVALID;
+                  return RV32IM_INVALID;
                 }
               } else {
-                return RV32I_INVALID;
+                return RV32IM_INVALID;
               }
             } else {
               if ((instruction & (1 << 3)) == 0) {
                 if ((instruction & (1 << 2)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx101xxxxx0000011
-                      return RV32I_LHU;
+                      return RV32IM_LHU;
                     }
                   }
                 } else {
-                  return RV32I_INVALID;
+                  return RV32IM_INVALID;
                 }
               } else {
-                return RV32I_INVALID;
+                return RV32IM_INVALID;
               }
             }
           } else {
-            return RV32I_INVALID;
+            return RV32IM_INVALID;
           }
         }
       } else {
@@ -175,13 +175,13 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
               if ((instruction & (1 << 13)) == 0) {
                 if ((instruction & (1 << 12)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx000xxxxx0010011
-                      return RV32I_ADDI;
+                      return RV32IM_ADDI;
                     }
                   }
                 } else {
@@ -192,55 +192,55 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
                           if ((instruction & (1 << 27)) == 0) {
                             if ((instruction & (1 << 26)) == 0) {
                               if ((instruction & (1 << 1)) == 0) {
-                                return RV32I_INVALID;
+                                return RV32IM_INVALID;
                               } else {
                                 if ((instruction & (1 << 0)) == 0) {
-                                  return RV32I_INVALID;
+                                  return RV32IM_INVALID;
                                 } else {
                                   // 000000xxxxxxxxxxx001xxxxx0010011
-                                  return RV32I_SLLI;
+                                  return RV32IM_SLLI;
                                 }
                               }
                             } else {
-                              return RV32I_INVALID;
+                              return RV32IM_INVALID;
                             }
                           } else {
-                            return RV32I_INVALID;
+                            return RV32IM_INVALID;
                           }
                         } else {
-                          return RV32I_INVALID;
+                          return RV32IM_INVALID;
                         }
                       } else {
-                        return RV32I_INVALID;
+                        return RV32IM_INVALID;
                       }
                     } else {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     }
                   } else {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   }
                 }
               } else {
                 if ((instruction & (1 << 12)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx010xxxxx0010011
-                      return RV32I_SLTI;
+                      return RV32IM_SLTI;
                     }
                   }
                 } else {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx011xxxxx0010011
-                      return RV32I_SLTIU;
+                      return RV32IM_SLTIU;
                     }
                   }
                 }
@@ -249,13 +249,13 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
               if ((instruction & (1 << 13)) == 0) {
                 if ((instruction & (1 << 12)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx100xxxxx0010011
-                      return RV32I_XORI;
+                      return RV32IM_XORI;
                     }
                   }
                 } else {
@@ -266,26 +266,26 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
                           if ((instruction & (1 << 27)) == 0) {
                             if ((instruction & (1 << 26)) == 0) {
                               if ((instruction & (1 << 1)) == 0) {
-                                return RV32I_INVALID;
+                                return RV32IM_INVALID;
                               } else {
                                 if ((instruction & (1 << 0)) == 0) {
-                                  return RV32I_INVALID;
+                                  return RV32IM_INVALID;
                                 } else {
                                   // 000000xxxxxxxxxxx101xxxxx0010011
-                                  return RV32I_SRLI;
+                                  return RV32IM_SRLI;
                                 }
                               }
                             } else {
-                              return RV32I_INVALID;
+                              return RV32IM_INVALID;
                             }
                           } else {
-                            return RV32I_INVALID;
+                            return RV32IM_INVALID;
                           }
                         } else {
-                          return RV32I_INVALID;
+                          return RV32IM_INVALID;
                         }
                       } else {
-                        return RV32I_INVALID;
+                        return RV32IM_INVALID;
                       }
                     } else {
                       if ((instruction & (1 << 29)) == 0) {
@@ -293,53 +293,53 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
                           if ((instruction & (1 << 27)) == 0) {
                             if ((instruction & (1 << 26)) == 0) {
                               if ((instruction & (1 << 1)) == 0) {
-                                return RV32I_INVALID;
+                                return RV32IM_INVALID;
                               } else {
                                 if ((instruction & (1 << 0)) == 0) {
-                                  return RV32I_INVALID;
+                                  return RV32IM_INVALID;
                                 } else {
                                   // 010000xxxxxxxxxxx101xxxxx0010011
-                                  return RV32I_SRAI;
+                                  return RV32IM_SRAI;
                                 }
                               }
                             } else {
-                              return RV32I_INVALID;
+                              return RV32IM_INVALID;
                             }
                           } else {
-                            return RV32I_INVALID;
+                            return RV32IM_INVALID;
                           }
                         } else {
-                          return RV32I_INVALID;
+                          return RV32IM_INVALID;
                         }
                       } else {
-                        return RV32I_INVALID;
+                        return RV32IM_INVALID;
                       }
                     }
                   } else {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   }
                 }
               } else {
                 if ((instruction & (1 << 12)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx110xxxxx0010011
-                      return RV32I_ORI;
+                      return RV32IM_ORI;
                     }
                   }
                 } else {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx111xxxxx0010011
-                      return RV32I_ANDI;
+                      return RV32IM_ANDI;
                     }
                   }
                 }
@@ -347,18 +347,18 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
             }
           } else {
             if ((instruction & (1 << 1)) == 0) {
-              return RV32I_INVALID;
+              return RV32IM_INVALID;
             } else {
               if ((instruction & (1 << 0)) == 0) {
-                return RV32I_INVALID;
+                return RV32IM_INVALID;
               } else {
                 // xxxxxxxxxxxxxxxxxxxxxxxxx0010111
-                return RV32I_AUIPC;
+                return RV32IM_AUIPC;
               }
             }
           }
         } else {
-          return RV32I_INVALID;
+          return RV32IM_INVALID;
         }
       }
     } else {
@@ -369,39 +369,39 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
               if ((instruction & (1 << 3)) == 0) {
                 if ((instruction & (1 << 2)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx000xxxxx0100011
-                      return RV32I_SB;
+                      return RV32IM_SB;
                     }
                   }
                 } else {
-                  return RV32I_INVALID;
+                  return RV32IM_INVALID;
                 }
               } else {
-                return RV32I_INVALID;
+                return RV32IM_INVALID;
               }
             } else {
               if ((instruction & (1 << 3)) == 0) {
                 if ((instruction & (1 << 2)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx001xxxxx0100011
-                      return RV32I_SH;
+                      return RV32IM_SH;
                     }
                   }
                 } else {
-                  return RV32I_INVALID;
+                  return RV32IM_INVALID;
                 }
               } else {
-                return RV32I_INVALID;
+                return RV32IM_INVALID;
               }
             }
           } else {
@@ -409,27 +409,27 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
               if ((instruction & (1 << 3)) == 0) {
                 if ((instruction & (1 << 2)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx010xxxxx0100011
-                      return RV32I_SW;
+                      return RV32IM_SW;
                     }
                   }
                 } else {
-                  return RV32I_INVALID;
+                  return RV32IM_INVALID;
                 }
               } else {
-                return RV32I_INVALID;
+                return RV32IM_INVALID;
               }
             } else {
-              return RV32I_INVALID;
+              return RV32IM_INVALID;
             }
           }
         } else {
-          return RV32I_INVALID;
+          return RV32IM_INVALID;
         }
       } else {
         if ((instruction & (1 << 3)) == 0) {
@@ -445,48 +445,48 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
                             if ((instruction & (1 << 13)) == 0) {
                               if ((instruction & (1 << 12)) == 0) {
                                 if ((instruction & (1 << 1)) == 0) {
-                                  return RV32I_INVALID;
+                                  return RV32IM_INVALID;
                                 } else {
                                   if ((instruction & (1 << 0)) == 0) {
-                                    return RV32I_INVALID;
+                                    return RV32IM_INVALID;
                                   } else {
                                     // 0000000xxxxxxxxxx000xxxxx0110011
-                                    return RV32I_ADD;
+                                    return RV32IM_ADD;
                                   }
                                 }
                               } else {
                                 if ((instruction & (1 << 1)) == 0) {
-                                  return RV32I_INVALID;
+                                  return RV32IM_INVALID;
                                 } else {
                                   if ((instruction & (1 << 0)) == 0) {
-                                    return RV32I_INVALID;
+                                    return RV32IM_INVALID;
                                   } else {
                                     // 0000000xxxxxxxxxx001xxxxx0110011
-                                    return RV32I_SLL;
+                                    return RV32IM_SLL;
                                   }
                                 }
                               }
                             } else {
                               if ((instruction & (1 << 12)) == 0) {
                                 if ((instruction & (1 << 1)) == 0) {
-                                  return RV32I_INVALID;
+                                  return RV32IM_INVALID;
                                 } else {
                                   if ((instruction & (1 << 0)) == 0) {
-                                    return RV32I_INVALID;
+                                    return RV32IM_INVALID;
                                   } else {
                                     // 0000000xxxxxxxxxx010xxxxx0110011
-                                    return RV32I_SLT;
+                                    return RV32IM_SLT;
                                   }
                                 }
                               } else {
                                 if ((instruction & (1 << 1)) == 0) {
-                                  return RV32I_INVALID;
+                                  return RV32IM_INVALID;
                                 } else {
                                   if ((instruction & (1 << 0)) == 0) {
-                                    return RV32I_INVALID;
+                                    return RV32IM_INVALID;
                                   } else {
                                     // 0000000xxxxxxxxxx011xxxxx0110011
-                                    return RV32I_SLTU;
+                                    return RV32IM_SLTU;
                                   }
                                 }
                               }
@@ -495,67 +495,167 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
                             if ((instruction & (1 << 13)) == 0) {
                               if ((instruction & (1 << 12)) == 0) {
                                 if ((instruction & (1 << 1)) == 0) {
-                                  return RV32I_INVALID;
+                                  return RV32IM_INVALID;
                                 } else {
                                   if ((instruction & (1 << 0)) == 0) {
-                                    return RV32I_INVALID;
+                                    return RV32IM_INVALID;
                                   } else {
                                     // 0000000xxxxxxxxxx100xxxxx0110011
-                                    return RV32I_XOR;
+                                    return RV32IM_XOR;
                                   }
                                 }
                               } else {
                                 if ((instruction & (1 << 1)) == 0) {
-                                  return RV32I_INVALID;
+                                  return RV32IM_INVALID;
                                 } else {
                                   if ((instruction & (1 << 0)) == 0) {
-                                    return RV32I_INVALID;
+                                    return RV32IM_INVALID;
                                   } else {
                                     // 0000000xxxxxxxxxx101xxxxx0110011
-                                    return RV32I_SRL;
+                                    return RV32IM_SRL;
                                   }
                                 }
                               }
                             } else {
                               if ((instruction & (1 << 12)) == 0) {
                                 if ((instruction & (1 << 1)) == 0) {
-                                  return RV32I_INVALID;
+                                  return RV32IM_INVALID;
                                 } else {
                                   if ((instruction & (1 << 0)) == 0) {
-                                    return RV32I_INVALID;
+                                    return RV32IM_INVALID;
                                   } else {
                                     // 0000000xxxxxxxxxx110xxxxx0110011
-                                    return RV32I_OR;
+                                    return RV32IM_OR;
                                   }
                                 }
                               } else {
                                 if ((instruction & (1 << 1)) == 0) {
-                                  return RV32I_INVALID;
+                                  return RV32IM_INVALID;
                                 } else {
                                   if ((instruction & (1 << 0)) == 0) {
-                                    return RV32I_INVALID;
+                                    return RV32IM_INVALID;
                                   } else {
                                     // 0000000xxxxxxxxxx111xxxxx0110011
-                                    return RV32I_AND;
+                                    return RV32IM_AND;
                                   }
                                 }
                               }
                             }
                           }
                         } else {
-                          return RV32I_INVALID;
+                          if ((instruction & (1 << 14)) == 0) {
+                            if ((instruction & (1 << 13)) == 0) {
+                              if ((instruction & (1 << 12)) == 0) {
+                                if ((instruction & (1 << 1)) == 0) {
+                                  return RV32IM_INVALID;
+                                } else {
+                                  if ((instruction & (1 << 0)) == 0) {
+                                    return RV32IM_INVALID;
+                                  } else {
+                                    // 0000001xxxxxxxxxx000xxxxx0110011
+                                    return RV32IM_MUL;
+                                  }
+                                }
+                              } else {
+                                if ((instruction & (1 << 1)) == 0) {
+                                  return RV32IM_INVALID;
+                                } else {
+                                  if ((instruction & (1 << 0)) == 0) {
+                                    return RV32IM_INVALID;
+                                  } else {
+                                    // 0000001xxxxxxxxxx001xxxxx0110011
+                                    return RV32IM_MULH;
+                                  }
+                                }
+                              }
+                            } else {
+                              if ((instruction & (1 << 12)) == 0) {
+                                if ((instruction & (1 << 1)) == 0) {
+                                  return RV32IM_INVALID;
+                                } else {
+                                  if ((instruction & (1 << 0)) == 0) {
+                                    return RV32IM_INVALID;
+                                  } else {
+                                    // 0000001xxxxxxxxxx010xxxxx0110011
+                                    return RV32IM_MULHSU;
+                                  }
+                                }
+                              } else {
+                                if ((instruction & (1 << 1)) == 0) {
+                                  return RV32IM_INVALID;
+                                } else {
+                                  if ((instruction & (1 << 0)) == 0) {
+                                    return RV32IM_INVALID;
+                                  } else {
+                                    // 0000001xxxxxxxxxx011xxxxx0110011
+                                    return RV32IM_MULHU;
+                                  }
+                                }
+                              }
+                            }
+                          } else {
+                            if ((instruction & (1 << 13)) == 0) {
+                              if ((instruction & (1 << 12)) == 0) {
+                                if ((instruction & (1 << 1)) == 0) {
+                                  return RV32IM_INVALID;
+                                } else {
+                                  if ((instruction & (1 << 0)) == 0) {
+                                    return RV32IM_INVALID;
+                                  } else {
+                                    // 0000001xxxxxxxxxx100xxxxx0110011
+                                    return RV32IM_DIV;
+                                  }
+                                }
+                              } else {
+                                if ((instruction & (1 << 1)) == 0) {
+                                  return RV32IM_INVALID;
+                                } else {
+                                  if ((instruction & (1 << 0)) == 0) {
+                                    return RV32IM_INVALID;
+                                  } else {
+                                    // 0000001xxxxxxxxxx101xxxxx0110011
+                                    return RV32IM_DIVU;
+                                  }
+                                }
+                              }
+                            } else {
+                              if ((instruction & (1 << 12)) == 0) {
+                                if ((instruction & (1 << 1)) == 0) {
+                                  return RV32IM_INVALID;
+                                } else {
+                                  if ((instruction & (1 << 0)) == 0) {
+                                    return RV32IM_INVALID;
+                                  } else {
+                                    // 0000001xxxxxxxxxx110xxxxx0110011
+                                    return RV32IM_REM;
+                                  }
+                                }
+                              } else {
+                                if ((instruction & (1 << 1)) == 0) {
+                                  return RV32IM_INVALID;
+                                } else {
+                                  if ((instruction & (1 << 0)) == 0) {
+                                    return RV32IM_INVALID;
+                                  } else {
+                                    // 0000001xxxxxxxxxx111xxxxx0110011
+                                    return RV32IM_REMU;
+                                  }
+                                }
+                              }
+                            }
+                          }
                         }
                       } else {
-                        return RV32I_INVALID;
+                        return RV32IM_INVALID;
                       }
                     } else {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     }
                   } else {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   }
                 } else {
-                  return RV32I_INVALID;
+                  return RV32IM_INVALID;
                 }
               } else {
                 if ((instruction & (1 << 29)) == 0) {
@@ -567,80 +667,80 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
                             if ((instruction & (1 << 13)) == 0) {
                               if ((instruction & (1 << 12)) == 0) {
                                 if ((instruction & (1 << 1)) == 0) {
-                                  return RV32I_INVALID;
+                                  return RV32IM_INVALID;
                                 } else {
                                   if ((instruction & (1 << 0)) == 0) {
-                                    return RV32I_INVALID;
+                                    return RV32IM_INVALID;
                                   } else {
                                     // 0100000xxxxxxxxxx000xxxxx0110011
-                                    return RV32I_SUB;
+                                    return RV32IM_SUB;
                                   }
                                 }
                               } else {
-                                return RV32I_INVALID;
+                                return RV32IM_INVALID;
                               }
                             } else {
-                              return RV32I_INVALID;
+                              return RV32IM_INVALID;
                             }
                           } else {
                             if ((instruction & (1 << 13)) == 0) {
                               if ((instruction & (1 << 12)) == 0) {
-                                return RV32I_INVALID;
+                                return RV32IM_INVALID;
                               } else {
                                 if ((instruction & (1 << 1)) == 0) {
-                                  return RV32I_INVALID;
+                                  return RV32IM_INVALID;
                                 } else {
                                   if ((instruction & (1 << 0)) == 0) {
-                                    return RV32I_INVALID;
+                                    return RV32IM_INVALID;
                                   } else {
                                     // 0100000xxxxxxxxxx101xxxxx0110011
-                                    return RV32I_SRA;
+                                    return RV32IM_SRA;
                                   }
                                 }
                               }
                             } else {
-                              return RV32I_INVALID;
+                              return RV32IM_INVALID;
                             }
                           }
                         } else {
-                          return RV32I_INVALID;
+                          return RV32IM_INVALID;
                         }
                       } else {
-                        return RV32I_INVALID;
+                        return RV32IM_INVALID;
                       }
                     } else {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     }
                   } else {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   }
                 } else {
-                  return RV32I_INVALID;
+                  return RV32IM_INVALID;
                 }
               }
             } else {
-              return RV32I_INVALID;
+              return RV32IM_INVALID;
             }
           } else {
             if ((instruction & (1 << 1)) == 0) {
-              return RV32I_INVALID;
+              return RV32IM_INVALID;
             } else {
               if ((instruction & (1 << 0)) == 0) {
-                return RV32I_INVALID;
+                return RV32IM_INVALID;
               } else {
                 // xxxxxxxxxxxxxxxxxxxxxxxxx0110111
-                return RV32I_LUI;
+                return RV32IM_LUI;
               }
             }
           }
         } else {
-          return RV32I_INVALID;
+          return RV32IM_INVALID;
         }
       }
     }
   } else {
     if ((instruction & (1 << 5)) == 0) {
-      return RV32I_INVALID;
+      return RV32IM_INVALID;
     } else {
       if ((instruction & (1 << 4)) == 0) {
         if ((instruction & (1 << 3)) == 0) {
@@ -649,125 +749,125 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
               if ((instruction & (1 << 12)) == 0) {
                 if ((instruction & (1 << 2)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx000xxxxx1100011
-                      return RV32I_BEQ;
+                      return RV32IM_BEQ;
                     }
                   }
                 } else {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx000xxxxx1100111
-                      return RV32I_JALR;
+                      return RV32IM_JALR;
                     }
                   }
                 }
               } else {
                 if ((instruction & (1 << 2)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx001xxxxx1100011
-                      return RV32I_BNE;
+                      return RV32IM_BNE;
                     }
                   }
                 } else {
-                  return RV32I_INVALID;
+                  return RV32IM_INVALID;
                 }
               }
             } else {
-              return RV32I_INVALID;
+              return RV32IM_INVALID;
             }
           } else {
             if ((instruction & (1 << 13)) == 0) {
               if ((instruction & (1 << 12)) == 0) {
                 if ((instruction & (1 << 2)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx100xxxxx1100011
-                      return RV32I_BLT;
+                      return RV32IM_BLT;
                     }
                   }
                 } else {
-                  return RV32I_INVALID;
+                  return RV32IM_INVALID;
                 }
               } else {
                 if ((instruction & (1 << 2)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx101xxxxx1100011
-                      return RV32I_BGE;
+                      return RV32IM_BGE;
                     }
                   }
                 } else {
-                  return RV32I_INVALID;
+                  return RV32IM_INVALID;
                 }
               }
             } else {
               if ((instruction & (1 << 12)) == 0) {
                 if ((instruction & (1 << 2)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx110xxxxx1100011
-                      return RV32I_BLTU;
+                      return RV32IM_BLTU;
                     }
                   }
                 } else {
-                  return RV32I_INVALID;
+                  return RV32IM_INVALID;
                 }
               } else {
                 if ((instruction & (1 << 2)) == 0) {
                   if ((instruction & (1 << 1)) == 0) {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   } else {
                     if ((instruction & (1 << 0)) == 0) {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     } else {
                       // xxxxxxxxxxxxxxxxx111xxxxx1100011
-                      return RV32I_BGEU;
+                      return RV32IM_BGEU;
                     }
                   }
                 } else {
-                  return RV32I_INVALID;
+                  return RV32IM_INVALID;
                 }
               }
             }
           }
         } else {
           if ((instruction & (1 << 2)) == 0) {
-            return RV32I_INVALID;
+            return RV32IM_INVALID;
           } else {
             if ((instruction & (1 << 1)) == 0) {
-              return RV32I_INVALID;
+              return RV32IM_INVALID;
             } else {
               if ((instruction & (1 << 0)) == 0) {
-                return RV32I_INVALID;
+                return RV32IM_INVALID;
               } else {
                 // xxxxxxxxxxxxxxxxxxxxxxxxx1101111
-                return RV32I_JAL;
+                return RV32IM_JAL;
               }
             }
           }
@@ -801,59 +901,59 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
                                                           if ((instruction & (1 << 3)) == 0) {
                                                             if ((instruction & (1 << 2)) == 0) {
                                                               if ((instruction & (1 << 1)) == 0) {
-                                                                return RV32I_INVALID;
+                                                                return RV32IM_INVALID;
                                                               } else {
                                                                 if ((instruction & (1 << 0)) == 0) {
-                                                                  return RV32I_INVALID;
+                                                                  return RV32IM_INVALID;
                                                                 } else {
                                                                   // 00000000000000000000000001110011
-                                                                  return RV32I_ECALL;
+                                                                  return RV32IM_ECALL;
                                                                 }
                                                               }
                                                             } else {
-                                                              return RV32I_INVALID;
+                                                              return RV32IM_INVALID;
                                                             }
                                                           } else {
-                                                            return RV32I_INVALID;
+                                                            return RV32IM_INVALID;
                                                           }
                                                         } else {
-                                                          return RV32I_INVALID;
+                                                          return RV32IM_INVALID;
                                                         }
                                                       } else {
-                                                        return RV32I_INVALID;
+                                                        return RV32IM_INVALID;
                                                       }
                                                     } else {
-                                                      return RV32I_INVALID;
+                                                      return RV32IM_INVALID;
                                                     }
                                                   } else {
-                                                    return RV32I_INVALID;
+                                                    return RV32IM_INVALID;
                                                   }
                                                 } else {
-                                                  return RV32I_INVALID;
+                                                  return RV32IM_INVALID;
                                                 }
                                               } else {
-                                                return RV32I_INVALID;
+                                                return RV32IM_INVALID;
                                               }
                                             } else {
-                                              return RV32I_INVALID;
+                                              return RV32IM_INVALID;
                                             }
                                           } else {
-                                            return RV32I_INVALID;
+                                            return RV32IM_INVALID;
                                           }
                                         } else {
-                                          return RV32I_INVALID;
+                                          return RV32IM_INVALID;
                                         }
                                       } else {
-                                        return RV32I_INVALID;
+                                        return RV32IM_INVALID;
                                       }
                                     } else {
-                                      return RV32I_INVALID;
+                                      return RV32IM_INVALID;
                                     }
                                   } else {
-                                    return RV32I_INVALID;
+                                    return RV32IM_INVALID;
                                   }
                                 } else {
-                                  return RV32I_INVALID;
+                                  return RV32IM_INVALID;
                                 }
                               } else {
                                 if ((instruction & (1 << 19)) == 0) {
@@ -872,93 +972,93 @@ rv32i_instruction rv32i_decode(uint32_t *address) {
                                                           if ((instruction & (1 << 3)) == 0) {
                                                             if ((instruction & (1 << 2)) == 0) {
                                                               if ((instruction & (1 << 1)) == 0) {
-                                                                return RV32I_INVALID;
+                                                                return RV32IM_INVALID;
                                                               } else {
                                                                 if ((instruction & (1 << 0)) == 0) {
-                                                                  return RV32I_INVALID;
+                                                                  return RV32IM_INVALID;
                                                                 } else {
                                                                   // 00000000000100000000000001110011
-                                                                  return RV32I_EBREAK;
+                                                                  return RV32IM_EBREAK;
                                                                 }
                                                               }
                                                             } else {
-                                                              return RV32I_INVALID;
+                                                              return RV32IM_INVALID;
                                                             }
                                                           } else {
-                                                            return RV32I_INVALID;
+                                                            return RV32IM_INVALID;
                                                           }
                                                         } else {
-                                                          return RV32I_INVALID;
+                                                          return RV32IM_INVALID;
                                                         }
                                                       } else {
-                                                        return RV32I_INVALID;
+                                                        return RV32IM_INVALID;
                                                       }
                                                     } else {
-                                                      return RV32I_INVALID;
+                                                      return RV32IM_INVALID;
                                                     }
                                                   } else {
-                                                    return RV32I_INVALID;
+                                                    return RV32IM_INVALID;
                                                   }
                                                 } else {
-                                                  return RV32I_INVALID;
+                                                  return RV32IM_INVALID;
                                                 }
                                               } else {
-                                                return RV32I_INVALID;
+                                                return RV32IM_INVALID;
                                               }
                                             } else {
-                                              return RV32I_INVALID;
+                                              return RV32IM_INVALID;
                                             }
                                           } else {
-                                            return RV32I_INVALID;
+                                            return RV32IM_INVALID;
                                           }
                                         } else {
-                                          return RV32I_INVALID;
+                                          return RV32IM_INVALID;
                                         }
                                       } else {
-                                        return RV32I_INVALID;
+                                        return RV32IM_INVALID;
                                       }
                                     } else {
-                                      return RV32I_INVALID;
+                                      return RV32IM_INVALID;
                                     }
                                   } else {
-                                    return RV32I_INVALID;
+                                    return RV32IM_INVALID;
                                   }
                                 } else {
-                                  return RV32I_INVALID;
+                                  return RV32IM_INVALID;
                                 }
                               }
                             } else {
-                              return RV32I_INVALID;
+                              return RV32IM_INVALID;
                             }
                           } else {
-                            return RV32I_INVALID;
+                            return RV32IM_INVALID;
                           }
                         } else {
-                          return RV32I_INVALID;
+                          return RV32IM_INVALID;
                         }
                       } else {
-                        return RV32I_INVALID;
+                        return RV32IM_INVALID;
                       }
                     } else {
-                      return RV32I_INVALID;
+                      return RV32IM_INVALID;
                     }
                   } else {
-                    return RV32I_INVALID;
+                    return RV32IM_INVALID;
                   }
                 } else {
-                  return RV32I_INVALID;
+                  return RV32IM_INVALID;
                 }
               } else {
-                return RV32I_INVALID;
+                return RV32IM_INVALID;
               }
             } else {
-              return RV32I_INVALID;
+              return RV32IM_INVALID;
             }
           } else {
-            return RV32I_INVALID;
+            return RV32IM_INVALID;
           }
         } else {
-          return RV32I_INVALID;
+          return RV32IM_INVALID;
         }
       }
     }

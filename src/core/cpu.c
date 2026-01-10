@@ -3,8 +3,10 @@
 #include "riscv_exec.h"
 
 extern const ext_t ext_rv32i;
+extern const ext_t ext_rv32m;
 static const ext_t *rv32_extensions[] = {
     &ext_rv32i,
+    &ext_rv32m,
 };
 
 cpu_t *cpu_new(ram_t *ram)
