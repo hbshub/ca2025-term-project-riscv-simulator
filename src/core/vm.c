@@ -21,19 +21,8 @@ void vm_free(vm_t *vm)
 vm_step_result_t vm_step(vm_t *vm)
 {
     cpu_t *cpu = vm->cpu;
-    // size_t code_size = vm->code_size;
-
-    // if (cpu->pc >= code_size) {
-    //     return VM_STEP_RESULT_HALT;
-    // }
-
     uint32_t pc_current = cpu->pc;
     uint32_t raw = cpu_fetch(cpu);
-
-    // if (cpu->pc > code_size) {
-    //     return VM_STEP_RESULT_HALT;
-    // }
-
     vm_step_result_t result = riscv_execute(cpu, raw, pc_current);
     
    return result;

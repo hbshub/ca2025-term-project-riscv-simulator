@@ -7,6 +7,12 @@ typedef struct {
     uint32_t regs[32];
     uint32_t pc;
     ram_t *ram;
+
+    // === Machine Mode CSRs ===
+    uint32_t mscratch; // (0x340) Temporary storage for machine mode
+    uint32_t mtvec;    // (0x305) Trap vector base address (Where to jump on trap)
+    uint32_t mepc;     // (0x341) Stored PC at the time of exception
+    uint32_t mcause;   // (0x342) Cause of the exception or interrupt
 } cpu_t;
 
 cpu_t *cpu_new(ram_t *ram);

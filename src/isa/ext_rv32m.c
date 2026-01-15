@@ -1,29 +1,30 @@
 #include "ext.h"
 #include "riscv_exec.h"
-#include "pie-rv32im-decoder.h"
-#include "pie-rv32im-field-decoder.h"
+#include "pie-rv32imc-decoder.h"
+#include "pie-rv32imc-field-decoder.h"
 
-static vm_step_result_t pie_rv32m_exec(cpu_t *cpu, rv32im_instruction inst_id, uint32_t raw, uint32_t pc) {
+static vm_step_result_t pie_rv32m_exec(cpu_t *cpu, rv32imc_instruction inst_id, uint32_t raw, uint32_t pc) {
 
+    uint16_t *raw16_ptr = (uint16_t*)&raw;
     // I, M PC increment
     cpu->pc = pc + 4;
 
     // pie decode fields
-    unsigned int rd, rs1, rs2;
+    unsigned int rd, rs1, rs2; 
 
     switch (inst_id) {
     
         /* === M-Type (Register-Register) === */
         /* multiply: rd = (rs1 * rs2)[31:0] */
-        case RV32IM_MUL: {
-            rv32im_mul_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IMC_MUL: {
+            rv32imc_mul_decode_fields(raw16_ptr, &rd, &rs1, &rs2);
             cpu->regs[rd] = cpu->regs[rs1] * cpu->regs[rs2];
             break;
         }
 
         /* multiply high (signed * signed): rd = (rs1 * rs2)[63:32] */
-        case RV32IM_MULH: {
-            rv32im_mulh_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IMC_MULH: {
+            rv32imc_mulh_decode_fields(raw16_ptr, &rd, &rs1, &rs2);
             int64_t a = (int64_t)(int32_t)cpu->regs[rs1];
             int64_t b = (int64_t)(int32_t)cpu->regs[rs2];
             cpu->regs[rd] = (uint32_t)((a * b) >> 32);
@@ -31,8 +32,8 @@ static vm_step_result_t pie_rv32m_exec(cpu_t *cpu, rv32im_instruction inst_id, u
         }
 
         /* multiply high (signed * unsigned): rd = (rs1 * rs2)[63:32] */
-        case RV32IM_MULHSU: {
-            rv32im_mulhsu_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IMC_MULHSU: {
+            rv32imc_mulhsu_decode_fields(raw16_ptr, &rd, &rs1, &rs2);
             int64_t a = (int64_t)(int32_t)cpu->regs[rs1]; // Signed ext
             uint64_t b = (uint64_t)cpu->regs[rs2];        // Zero ext
             cpu->regs[rd] = (uint32_t)((a * b) >> 32);
@@ -40,8 +41,8 @@ static vm_step_result_t pie_rv32m_exec(cpu_t *cpu, rv32im_instruction inst_id, u
         }
 
         /* multiply high (unsigned * unsigned): rd = (rs1 * rs2)[63:32] */
-        case RV32IM_MULHU: {
-            rv32im_mulhu_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IMC_MULHU: {
+            rv32imc_mulhu_decode_fields(raw16_ptr, &rd, &rs1, &rs2);
             uint64_t a = (uint64_t)cpu->regs[rs1];
             uint64_t b = (uint64_t)cpu->regs[rs2];
             cpu->regs[rd] = (uint32_t)((a * b) >> 32);
@@ -49,8 +50,8 @@ static vm_step_result_t pie_rv32m_exec(cpu_t *cpu, rv32im_instruction inst_id, u
         }
 
         /* divide signed: rd = rs1 / rs2 */
-        case RV32IM_DIV: {
-            rv32im_div_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IMC_DIV: {
+            rv32imc_div_decode_fields(raw16_ptr, &rd, &rs1, &rs2);
             int32_t a = (int32_t)cpu->regs[rs1]; // dividend
             int32_t b = (int32_t)cpu->regs[rs2]; // divisor
             /* division by zero */
@@ -63,8 +64,8 @@ static vm_step_result_t pie_rv32m_exec(cpu_t *cpu, rv32im_instruction inst_id, u
         }
 
         /* divide unsigned: rd = rs1 / rs2 */
-        case RV32IM_DIVU: {
-            rv32im_divu_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IMC_DIVU: {
+            rv32imc_divu_decode_fields(raw16_ptr, &rd, &rs1, &rs2);
             uint32_t a = cpu->regs[rs1];
             uint32_t b = cpu->regs[rs2];
             /* division by zero ? -1 : quotient */
@@ -73,8 +74,8 @@ static vm_step_result_t pie_rv32m_exec(cpu_t *cpu, rv32im_instruction inst_id, u
         }
 
         /* remainder signed: rd = rs1 % rs2 */
-        case RV32IM_REM: {
-            rv32im_rem_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IMC_REM: {
+            rv32imc_rem_decode_fields(raw16_ptr, &rd, &rs1, &rs2);
             int32_t a = (int32_t)cpu->regs[rs1]; // remainder dividend
             int32_t b = (int32_t)cpu->regs[rs2]; // remainder divisor
             /* remainder by zero is dividend */
@@ -87,8 +88,8 @@ static vm_step_result_t pie_rv32m_exec(cpu_t *cpu, rv32im_instruction inst_id, u
         }
 
         /* remainder unsigned: rd = rs1 % rs2 */
-        case RV32IM_REMU: {
-            rv32im_remu_decode_fields(&raw, &rd, &rs1, &rs2);
+        case RV32IMC_REMU: {
+            rv32imc_remu_decode_fields(raw16_ptr, &rd, &rs1, &rs2);
             uint32_t a = cpu->regs[rs1];
             uint32_t b = cpu->regs[rs2];
             /* remainder by zero ? dividend : remainder */
@@ -106,7 +107,7 @@ static vm_step_result_t pie_rv32m_exec(cpu_t *cpu, rv32im_instruction inst_id, u
 
 const ext_t ext_rv32m = {
     .name = "RV32M",
-    .start_id = RV32IM_MUL,
-    .end_id = RV32IM_REMU,
+    .start_id = RV32IMC_MUL,
+    .end_id = RV32IMC_REMU,
     .exec = pie_rv32m_exec
 };

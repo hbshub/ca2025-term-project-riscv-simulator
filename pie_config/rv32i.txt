@@ -39,3 +39,11 @@ and              0000000a aaaabbbb b111cccc c0110011, c:rd, b:rs1, a:rs2
 fence            aaaabbbb cccc0000 00000000 00001111, a:fm, b:pred, c:succ
 ecall            00000000 00000000 00000000 01110011
 ebreak           00000000 00010000 00000000 01110011
+mret             00110000 00100000 00000000 01110011
+# Zicsr Standard Extension
+csrrw            aaaaaaaa aaaabbbb b001cccc c1110011, c:rd, a:csr, b:rs1
+csrrs            aaaaaaaa aaaabbbb b010cccc c1110011, c:rd, a:csr, b:rs1
+csrrc            aaaaaaaa aaaabbbb b011cccc c1110011, c:rd, a:csr, b:rs1
+csrrwi           aaaaaaaa aaaabbbb b101cccc c1110011, c:rd, a:csr, b:uimm
+csrrsi           aaaaaaaa aaaabbbb b110cccc c1110011, c:rd, a:csr, b:uimm
+csrrci           aaaaaaaa aaaabbbb b111cccc c1110011, c:rd, a:csr, b:uimm

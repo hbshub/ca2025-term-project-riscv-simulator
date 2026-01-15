@@ -4,9 +4,11 @@
 
 extern const ext_t ext_rv32i;
 extern const ext_t ext_rv32m;
+extern const ext_t ext_rv32c;
 static const ext_t *rv32_extensions[] = {
     &ext_rv32i,
     &ext_rv32m,
+    &ext_rv32c,
 };
 
 cpu_t *cpu_new(ram_t *ram)

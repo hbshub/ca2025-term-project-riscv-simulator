@@ -2,7 +2,7 @@
 CROSS_COMPILE = riscv-none-elf-
 RV_CC         = $(CROSS_COMPILE)gcc
 RV_OBJCOPY    = $(CROSS_COMPILE)objcopy
-RV_CFLAGS     = -march=rv32i -mabi=ilp32 -nostdlib -T link.ld
+RV_CFLAGS     = -march=rv32imc -mabi=ilp32 -nostdlib -T link.ld
 
 # Pie Generator Settings
 PIE_DIR      = pie
@@ -10,7 +10,7 @@ CONFIG_DIR   = pie_config
 CORE_DIR     = src/core
 ISA_DIR      = src/isa
 GEN_OUT_DIR  = src/isa/generated
-TARGET_ARCH  = rv32im
+TARGET_ARCH  = rv32imc
 
 # Host toolchain
 CC          = gcc
@@ -71,7 +71,11 @@ $(GEN_OUT_DIR)/%.o: $(GEN_OUT_DIR)/%.c
 
 # --- Utility Rules ---
 clean:
-	rm -f test/*.elf src/*.o $(GEN_OUT_DIR)/*.o main test/*.bin
+	rm -f main test/*.elf test/*.bin
+	rm -f src/*.o
+	rm -f src/core/*.o
+	rm -f src/isa/*.o
+	rm -f src/isa/generated/*.o
 
 hello:
 	@echo "--- Running hello.S ---"
@@ -79,6 +83,12 @@ hello:
 echo:
 	@echo "--- Running echo.S ---"
 	@./main test/echo.bin /dev/null 0 0 0
+c_hello:
+	@echo "--- Running c_hello.S ---"
+	@./main test/c_hello.bin /dev/null 0 0 0
+c_echo:
+	@echo "--- Running c_echo.S ---"
+	@./main test/c_echo.bin /dev/null 0 0 0
 
 # --- Pie Generation Rules ---
 PIE_TARGETS  = pie-$(TARGET_ARCH)-decoder.c \
@@ -87,7 +97,8 @@ PIE_TARGETS  = pie-$(TARGET_ARCH)-decoder.c \
                pie-$(TARGET_ARCH)-field-decoder.h
 
 ISA_PARTS    = $(CONFIG_DIR)/rv32i.txt \
-			   $(CONFIG_DIR)/rv32m.txt
+			   $(CONFIG_DIR)/rv32m.txt \
+			   $(CONFIG_DIR)/rv32c.txt
 
 gen_pie:
 	@echo "--- Generating PIE sources for $(TARGET_ARCH) ---"
@@ -96,7 +107,7 @@ gen_pie:
 	cat $(ISA_PARTS) > $(PIE_DIR)/$(TARGET_ARCH).txt
 
 	# generate PIE sources
-	cd $(PIE_DIR) && $(MAKE) ARCH=$(TARGET_ARCH) $(PIE_TARGETS)
+	cd $(PIE_DIR) && $(MAKE) ARCH=$(TARGET_ARCH) OPTS=swaphw $(PIE_TARGETS)
 	
 	# move ouput files to GEN_OUT_DIR
 	mv $(PIE_DIR)/pie-$(TARGET_ARCH)-*.c $(GEN_OUT_DIR)/
