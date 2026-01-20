@@ -89,6 +89,13 @@ c_hello:
 c_echo:
 	@echo "--- Running c_echo.S ---"
 	@./main test/c_echo.bin /dev/null 0 0 0
+uf8:
+	@echo "--- Running uf8_i.S ---"
+	@./main test/uf8_i.bin /dev/null 0 0 0
+	@echo "--- Running uf8_m.S ---"
+	@./main test/uf8_m.bin /dev/null 0 0 0
+	@echo "--- Running uf8_c.S ---"
+	@./main test/uf8_c.bin /dev/null 0 0 0
 
 # --- Pie Generation Rules ---
 PIE_TARGETS  = pie-$(TARGET_ARCH)-decoder.c \

@@ -109,7 +109,8 @@ vm_step_result_t ecall_handler(cpu_t *cpu, uint32_t raw, uint32_t pc) {
         }
         case SYSCALL_EXIT: {
             int32_t exit_code = cpu->regs[10];
-            printf("Program exited with code: %d\n", exit_code);
+            if (exit_code == 1) printf("Program passed all test cases.\n\n");
+            else printf("Program exited with code: %d\n", exit_code);
             return VM_STEP_RESULT_HALT;
         }
         default:
