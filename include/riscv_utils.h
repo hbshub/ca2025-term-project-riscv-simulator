@@ -84,9 +84,11 @@ static inline bool utils_exec_bne(cpu_t *cpu, uint32_t rs1, uint32_t rs2) {
 
 /*
  * Generic Jump and Link
+ * Covers: JAL, JALR, C.J, C.JAL, C.JR, C.JALR
  * rd: Link register (usually x1 or x0)
  * return_addr: The address to save into rd (Current PC + 2 or 4)
  * target_addr: The final destination address
+ * (Note: Caller must handle LSB masking for JALR/JR variants)
  */
 static inline void utils_exec_jump_link(
     cpu_t *cpu, uint32_t rd,

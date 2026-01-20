@@ -2,6 +2,35 @@
 
 static inst_handler_t dispatch_table[RV32IMC_INVALID + 1];
 
+bool is_rvc_hint(uint16_t inst) {
+    // 1. Extract Opcode (Quadrant)
+    uint32_t op = inst & 0x3;
+    
+    // [Important] Quadrant 0 (00) has no HINT!
+    // In Q0, rd=0 is Reserved (Illegal), so return false to trigger an error.
+    if (op == 0x0) return false;
+
+    // 2. Extract rd (Bit 11-7)
+    uint32_t rd = (inst >> 7) & 0x1F;
+
+    // [Rule A] Operations writing to x0 (covers C.LI, C.LUI, C.MV, C.ADD, C.SLLI, etc.)
+    if (rd == 0) {
+        return true; 
+    }
+
+    // [Rule B] Special case for C.ADDI with imm=0 (addi rd, rd, 0)
+    // Quadrant 1, Funct3 0 => C.ADDI
+    uint32_t funct3 = (inst >> 13) & 0x7;
+    if (op == 0x1 && funct3 == 0) {
+        // C.ADDI imm check: bit 12 (sign) and bit 6-2 (low bits)
+        // If both parts are 0, it's a +0 operation
+        if ((inst & 0x107C) == 0) { 
+            return true;
+        }
+    }
+
+    return false;
+}
 
 // default invalid handler
 static vm_step_result_t invalid_handler(cpu_t *cpu, rv32imc_instruction inst, uint32_t raw, uint32_t pc) {
@@ -9,15 +38,12 @@ static vm_step_result_t invalid_handler(cpu_t *cpu, rv32imc_instruction inst, ui
     // These instructions are usually c.add, c.mv, c.li, etc., but with rd=0
     // Characteristics:
     // 1. is compressed instruction (Bit[1:0] != 11)
-    // 2. target register rd (Bit[11:7]) is 0
+    // 2. writes to x0 (rd = 0) || is c.addi with imm=0
     
     if ((raw & 0x3) != 0x3) { // 16-bit instruction
         uint16_t inst16 = (uint16_t)raw;
         
-        // extract rd (Bit 11-7)
-        uint32_t rd = (inst16 >> 7) & 0x1F;
-        
-        if (rd == 0) {
+        if (is_rvc_hint(inst16)) {
             // HINT instruction (e.g., c.add x0, x2)
             // decoder marks it as illegal, in hardware this is just a NOP
             cpu->pc = pc + 2;
