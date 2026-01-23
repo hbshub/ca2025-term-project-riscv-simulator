@@ -1,13 +1,13 @@
 #include "vm.h"
 #include "riscv_exec.h"
 
-vm_t *vm_new(uint8_t *code, size_t code_size)
+vm_t *vm_new()
 {
     vm_t *vm = malloc(sizeof(vm_t));
+    if (!vm) fatal("Failed to allocate memory for VM\n");
     vm->ram = ram_new();
-    ram_load_image(vm->ram, code, code_size, RAM_BASE);
     vm->cpu = cpu_new(vm->ram);
-    vm->code_size = code_size;
+    vm->code_size = 0;
     return vm;
 }
 
@@ -31,7 +31,9 @@ vm_step_result_t vm_step(vm_t *vm)
 vm_step_result_t vm_run(vm_t *vm, uint32_t tohost_addr)
 {
     vm_step_result_t result;
+    // static uint64_t counter = 0;
     while (1) {
+        // counter++;
         result = vm_step(vm);
 
         // ecall or illegal instruction
@@ -43,5 +45,8 @@ vm_step_result_t vm_run(vm_t *vm, uint32_t tohost_addr)
             if (val != 0) { return VM_STEP_RESULT_HALT; }
         }
     }
+    #ifdef DEBUG
+        printf("[System] Total instructions executed: %lu\n", counter);
+    #endif
     return result;
 }

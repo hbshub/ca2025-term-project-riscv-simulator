@@ -15,9 +15,6 @@ cpu_t *cpu_new(ram_t *ram)
 {
     cpu_t *cpu = malloc(sizeof(cpu_t));
     memset(cpu->regs, 0, sizeof(cpu->regs));
-    /* Stack pointer */
-    cpu->regs[2] = RAM_BASE + RAM_SIZE;
-    cpu->pc = RAM_BASE;
     cpu->ram = ram;
     
     /* Init dispatch table */
@@ -45,5 +42,8 @@ void cpu_store(cpu_t *cpu, uint32_t addr, uint8_t size, uint32_t value)
 
 uint32_t cpu_fetch(cpu_t *cpu)
 {
+    #ifdef DEBUG
+        printf("[Debug] Fetching at PC: 0x%x\n", cpu->pc);
+    #endif
     return cpu_load(cpu, cpu->pc, 32);
 }

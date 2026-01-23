@@ -308,7 +308,7 @@ static vm_step_result_t pie_rv32c_exec(cpu_t *cpu, rv32imc_instruction inst_id, 
           
           case RV32IMC_C_ILLEGAL:
                // illegal instruction
-               fatal("Illegal Instruction 0x%x at PC 0x%x\n", raw, pc);
+               fatal("C-ext Illegal Instruction 0x%x at PC 0x%x\n", raw, pc);
                break;
 
           default:

@@ -13,9 +13,11 @@
 **/*.log
 **/*.d
 **/*.a
+**/*.txt
 
 # Repo root build output
 /main
 
 # tools and work directories
 /riscof_env/riscof_work/
+/cov-tests/

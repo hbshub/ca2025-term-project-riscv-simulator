@@ -79,23 +79,41 @@ clean:
 
 hello:
 	@echo "--- Running hello.S ---"
-	@./main test/hello.bin /dev/null 0 0 0
+	@./main test/hello.bin
 echo:
 	@echo "--- Running echo.S ---"
-	@./main test/echo.bin /dev/null 0 0 0
+	@./main test/echo.bin
 c_hello:
 	@echo "--- Running c_hello.S ---"
-	@./main test/c_hello.bin /dev/null 0 0 0
+	@./main test/c_hello.bin
 c_echo:
 	@echo "--- Running c_echo.S ---"
-	@./main test/c_echo.bin /dev/null 0 0 0
+	@./main test/c_echo.bin
 uf8:
 	@echo "--- Running uf8_i.S ---"
-	@./main test/uf8_i.bin /dev/null 0 0 0
+	@./main test/uf8_i.bin
 	@echo "--- Running uf8_m.S ---"
-	@./main test/uf8_m.bin /dev/null 0 0 0
+	@./main test/uf8_m.bin
 	@echo "--- Running uf8_c.S ---"
-	@./main test/uf8_c.bin /dev/null 0 0 0
+	@./main test/uf8_c.bin
+cov_test: 
+	@echo "--- Running coverage test ---"
+	$(MAKE) dhrystone
+	$(MAKE) coremark
+	$(MAKE) richards
+	$(MAKE) stream
+dhrystone:
+	@echo "--- Running dhrystone benchmark ---"
+	@./main test/cov-tests/dhrystone
+coremark:
+	@echo "--- Running coremark benchmark ---"
+	@./main test/cov-tests/coremark
+richards:
+	@echo "--- Running richards benchmark ---"
+	@./main test/cov-tests/richards
+stream:
+	@echo "--- Running stream benchmark ---"
+	@./main test/cov-tests/stream
 
 # --- Pie Generation Rules ---
 PIE_TARGETS  = pie-$(TARGET_ARCH)-decoder.c \

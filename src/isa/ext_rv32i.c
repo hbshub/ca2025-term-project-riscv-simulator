@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 199309L
+#include <time.h>
 #include "ext.h"
 #include "riscv_exec.h"
 #include "riscv_utils.h"
@@ -62,9 +64,14 @@ static inline int32_t pie_j_imm(uint32_t raw_chunk) {
 }
 
 enum { 
-    SYSCALL_WRITE = 64,
-    SYSCALL_READ = 63,
-    SYSCALL_EXIT = 93 
+    SYSCALL_CLOSE           = 57,
+    SYSCALL_LSEEK           = 62,
+    SYSCALL_READ            = 63,
+    SYSCALL_WRITE           = 64,
+    SYSCALL_FSTAT           = 80,
+    SYSCALL_EXIT            = 93,
+    SYSCALL_BRK             = 214,
+    SYSCALL_CLOCK_GETTIME   = 403,
 };
 enum { 
     STDOUT = 1,
@@ -73,6 +80,11 @@ enum {
 
 vm_step_result_t ecall_handler(cpu_t *cpu, uint32_t raw, uint32_t pc) {
     uint32_t syscall_nr = cpu->regs[17];
+    #ifdef DEBUG
+        printf("[Syscall] a7=%d (a0=%d, a1=0x%x)\n", 
+            syscall_nr, cpu->regs[10], cpu->regs[11]);
+    #endif
+
     switch (syscall_nr) {
         case SYSCALL_WRITE: {
             uint32_t fd     = cpu->regs[10];
@@ -113,7 +125,78 @@ vm_step_result_t ecall_handler(cpu_t *cpu, uint32_t raw, uint32_t pc) {
             else printf("Program exited with code: %d\n", exit_code);
             return VM_STEP_RESULT_HALT;
         }
+
+        case SYSCALL_BRK: {
+
+            // Initialize heap at 240MB (0x0F000000) to avoid collision with 
+            // large BSS sections (e.g., STREAM benchmark uses ~229MB).
+            static uint32_t current_break = 0x0F000000; 
+            uint32_t req_addr = cpu->regs[10];
+            
+            if (req_addr == 0) {
+                // Case 1: Query current program break
+                cpu->regs[10] = current_break;
+            } else {
+                // Case 2: Request to set new program break
+                if (req_addr <= RAM_SIZE) {
+                    // Success: Update break address  
+                    current_break = req_addr;
+                    cpu->regs[10] = current_break; // Return the new break address
+                } else {
+                    // Failure: Out of Memory (OOM)
+                    // Return current break to indicate failure
+                    #ifdef DEBUG
+                        printf("[Warning] sys_brk OOM: Requested 0x%x, Limit 0x%x\n", req_addr, RAM_SIZE);
+                    #endif
+                    cpu->regs[10] = current_break; // Return the current break address
+                }
+            }
+            return VM_STEP_RESULT_OK;
+        }
+
+        case SYSCALL_CLOCK_GETTIME: {
+            uint32_t clk_id = cpu->regs[10];
+            uint32_t tp_addr = cpu->regs[11];
+
+            if (clk_id != 0) {
+                fatal("Unsupported clock id: %d\n", clk_id);
+            }
+
+            struct timespec ts;
+            clock_gettime(CLOCK_REALTIME, &ts);
+            // Store seconds (8 bytes)
+            uint64_t sec = (uint64_t)ts.tv_sec;
+            cpu_store(cpu, tp_addr, 32, (uint32_t)(sec & 0xFFFFFFFF));
+            cpu_store(cpu, tp_addr + 4, 32, (uint32_t)((sec >> 32) & 0xFFFFFFFF));
+            // Store nanoseconds (8 bytes)
+            uint64_t nsec = (uint64_t)ts.tv_nsec;
+            cpu_store(cpu, tp_addr + 8, 32, (uint32_t)(nsec & 0xFFFFFFFF));
+            cpu_store(cpu, tp_addr + 12, 32, (uint32_t)((nsec >> 32) & 0xFFFFFFFF));
+
+            cpu->regs[10] = 0; // Return 0 for success
+            return VM_STEP_RESULT_OK;
+        }
+
+        // fstat(int fd, struct stat *buf)
+        case SYSCALL_FSTAT: {
+            cpu->regs[10] = 0; 
+            return VM_STEP_RESULT_OK;
+        }
+
+        // lseek(int fd, off_t offset, int whence)
+        case SYSCALL_LSEEK: {
+            cpu->regs[10] = 0; 
+            return VM_STEP_RESULT_OK;
+        }
+
+        // close(int fd)
+        case SYSCALL_CLOSE: {
+            cpu->regs[10] = 0; 
+            return VM_STEP_RESULT_OK;
+        }
+
         default:
+            printf("Unknown syscall: %d\n, 0x%08x", syscall_nr, raw);
             // 1. Record the location of the incident (current PC, not the next instruction)
             cpu->mepc = pc; 
             // 2. Record the cause of the incident (11 = Environment call from M-mode)
@@ -122,7 +205,6 @@ vm_step_result_t ecall_handler(cpu_t *cpu, uint32_t raw, uint32_t pc) {
             // Mask out the last two bits (Mode bits), only take Base Address
             cpu->pc = cpu->mtvec & ~0x3;
             return VM_STEP_RESULT_OK;
-            fatal("Unknown syscall: %d\n, 0x%08x", syscall_nr, raw);
     }
 }
 
@@ -387,7 +469,7 @@ static vm_step_result_t pie_rv32i_exec(cpu_t *cpu, rv32imc_instruction inst_id, 
             break;
 
         default:
-            fatal("Illegal Instruction 0x%x at PC 0x%x\n", raw, pc);
+            fatal("I-ext Illegal Instruction 0x%x at PC 0x%x\n", raw, pc);
             break;
     }
     cpu->regs[0] = 0; // x0 is always zero

@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <elf.h>
 
 #define fatal(args...)     \
     do {                   \
@@ -15,7 +16,8 @@
     } while (0)
 
 enum {
-    RAM_SIZE = 1024 * 1024 * 2, /* 2 MiB */
+    // stream need 230 MiB bss space
+    RAM_SIZE = 1024 * 1024 * 256, /* 256 MiB */
     RAM_BASE = 0x80000000,
 };
 
